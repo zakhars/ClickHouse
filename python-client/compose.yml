@@ -1,0 +1,17 @@
+services:
+  python-app:
+    image: python:3.12-slim
+    container_name: python312-container
+    working_dir: /code
+    volumes:
+      - ./code:/code
+      - ./requirements.txt:/code/requirements.txt
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt &&
+             python main.py"
+    networks:
+      - clickhouse-net
+
+networks:
+  clickhouse-net:
+    external: true
