@@ -7,8 +7,8 @@ services:
       - ./code:/code
       - ./requirements.txt:/code/requirements.txt
     command: >
-      sh -c "pip install --upgrade pip &&
-             pip install --no-cache-dir -r requirements.txt &&
+      sh -c "pip install --root-user-action --upgrade pip &&
+             pip install --root-user-action --no-cache-dir -r requirements.txt &&
              python main.py"
     networks:
       - clickhouse-net
