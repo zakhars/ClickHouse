@@ -8,8 +8,8 @@ client = clickhouse_connect.get_client(
     database='marketdata'
 )
 
-result = client.query('SELECT 123')
-print(f"Connection successful: {result.result_rows}")
+client.query('SELECT 1')
+print(f"Connection successful")
 
 
 client.command('''
