@@ -51,6 +51,11 @@ SETTINGS index_granularity = 8192;
 
 print("Tables created successfully.")
 
+client.command('TRUNCATE TABLE default.md_trades')
+client.command('TRUNCATE TABLE default.md_quotes')
+
+print("Tables truncated successfully.")
+
 trades = [
     [1, 1, 100.0, datetime.datetime(2026,1,1,10,10,10),  datetime.datetime(2026,1,1,15,10,10), 'f.ep.z26', 'src', 1],
     [1, 1, 100.0, datetime.datetime(2026,1,1,10,10,10),  datetime.datetime(2026,1,1,15,10,10), 'f.sp.z26', 'src', 2],
