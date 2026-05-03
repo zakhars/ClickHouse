@@ -1,69 +1,60 @@
 import clickhouse_connect
 import datetime
+from pathlib import Path
+import random
 
-client = clickhouse_connect.get_client(
-    host='clickhouse-md-svr',
-    username='default',
-    password='password',
-    database='marketdata'
-)
+def connect(host, db, usr, pwd):
+    client = clickhouse_connect.get_client(host=host, username=db, password=usr, database=pwd)
+    client.query('SELECT 1')
+    return client
 
-client.query('SELECT 1')
-print(f"Connection successful")
+def init_schema(client, scripts_path):
+    path = Path(scripts_path)
+    sc_scripts = sorted([str(f.resolve()) for f in path.glob('*_sc_*')])
+    for script_name in sc_scripts:
+        script = Path(script_name).read_text(encoding='utf-8')
+        client.command(script)
+
+def init_data(client, batch_size=1):
+    client.query('TRUNCATE TABLE default.md_trades')
+    client.query('TRUNCATE TABLE default.md_quotes')
+
+    trades = []
+    for n in range(10000 // batch_size):
+        for m in range(batch_size):
+            trades.append((random.randint(1,100), random.randint(0,2), random.randint(1,1000), n * m / 1000,  n * m / 1000, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+    client.insert('default.md_trades', trades, column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+
+    quotes = []
+    for n in range(1000000 // batch_size):
+        for m in range(batch_size):
+            quotes.append((random.randint(1,100), random.randint(1,100), random.randint(1,1000), random.randint(1,1000), random.randint(1,1000), n * m / 1000,  n * m / 1000, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+    client.insert('default.md_quotes', quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
 
-client.command('''
-CREATE TABLE IF NOT EXISTS default.md_trades
-(
-    `qty` UInt64 CODEC(DoubleDelta, LZ4),
-    `side` Enum8('undef' = 0, 'buy' = 1, 'sell' = 2) CODEC(LZ4),
-    `price` Float64 CODEC(Gorilla, LZ4),
-    `local_ts` DateTime64(9, 'UTC') CODEC(LZ4),
-    `exch_ts` DateTime64(9, 'UTC') CODEC(LZ4),
-    `symbol` LowCardinality(String) CODEC(LZ4),
-    `source` LowCardinality(String) CODEC(LZ4),
-    `seqno` UInt64 CODEC(DoubleDelta, LZ4)
-)
-ENGINE = MergeTree
-PARTITION BY toYearWeek(local_ts)
-ORDER BY (symbol, local_ts)
-SETTINGS index_granularity = 8192;
-''')
+def check_data(client):
+    trades_row_count = client.query('SELECT COUNT(*) FROM default.md_trades')
+    quotes_row_count = client.query('SELECT COUNT(*) FROM default.md_quotes')
+    return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
 
-client.command('''
-CREATE TABLE IF NOT EXISTS default.md_quotes
-(
-    `bid_qty` UInt64 CODEC(DoubleDelta, LZ4),
-    `ask_qty` UInt64 CODEC(DoubleDelta, LZ4),
-    `bid_price` Float64 CODEC(Gorilla, LZ4),
-    `ask_price` Float64 CODEC(Gorilla, LZ4),
-    `local_ts` DateTime64(9, 'UTC') CODEC(LZ4),
-    `exch_ts` DateTime64(9, 'UTC') CODEC(LZ4),
-    `symbol` LowCardinality(String) CODEC(LZ4),
-    `source` LowCardinality(String) CODEC(LZ4),
-    `seqno` UInt64 CODEC(DoubleDelta, LZ4)
-)
-ENGINE = MergeTree
-PARTITION BY toYearWeek(local_ts)
-ORDER BY (symbol, local_ts)
-SETTINGS index_granularity = 8192;
-''')
 
-print("Tables created successfully.")
+if __name__ == '__main__':
+    try:
 
-client.command('TRUNCATE TABLE default.md_trades')
-client.command('TRUNCATE TABLE default.md_quotes')
+        client = connect(
+            host='clickhouse-md-svr',
+            db='marketdata',
+            usr='default',
+            pwd='password')
+        if client is not None: print(f"Connected successfully.")
 
-print("Tables truncated successfully.")
+        init_schema(client, './sql')
+        print("Tables created successfully.")
 
-trades = [
-    [1, 1, 100.0, datetime.datetime(2026,1,1,10,10,10),  datetime.datetime(2026,1,1,15,10,10), 'f.ep.z26', 'src', 1],
-    [1, 1, 100.0, datetime.datetime(2026,1,1,10,10,10),  datetime.datetime(2026,1,1,15,10,10), 'f.sp.z26', 'src', 2],
-]
-client.insert('default.md_trades', trades, column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
-print("Data inserted successfully.")
+        init_data(client=client, batch_size=100)
+        print("Data inserted successfully.")
 
-result = client.query('SELECT * FROM default.md_trades')
-print("SELECT results:")
-for row in result.result_rows:
-    print(row)
+        if (check_data(client)): print("Data checked successfully.")
+
+    except Exception as e:
+        print(f'Exception occurred in main(): {e}\nStack:{e.stacktrace}')
