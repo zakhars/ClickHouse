@@ -82,7 +82,7 @@ if __name__ == '__main__':
         init_schema(client, './sql')
         print("Tables created successfully.")
 
-        init_data(client=client, batch_size=100)
+        init_data(client=client, batch_size=100000)
         print("Data inserted successfully.")
 
         if (check_data(client)):
