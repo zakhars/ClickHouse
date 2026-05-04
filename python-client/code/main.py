@@ -22,7 +22,7 @@ def init_data(client, batch_size=1):
     trades = []
     cur_ns = time.time_ns() - 1000000
     i = 0
-    for n in range(1000000 // batch_size):
+    for n in range(100000 // batch_size):
         for m in range(batch_size):
             trades.append(
                 (random.randint(1,100),
@@ -39,7 +39,7 @@ def init_data(client, batch_size=1):
 
     quotes = []
     i = 0
-    for n in range(100000000 // batch_size):
+    for n in range(10000000 // batch_size):
         for m in range(batch_size):
             quotes.append(
                 (random.randint(1,100),
@@ -67,28 +67,29 @@ def check_data(client):
     for row in quotes.result_rows:
         print(row)
     print('\n')
-    return trades_row_count.result_rows[0][0] == 1000000 and quotes_row_count.result_rows[0][0] == 100000000
+    return trades_row_count.result_rows[0][0] == 100000 and quotes_row_count.result_rows[0][0] == 10000000
 
 
 if __name__ == '__main__':
     try:
+        print("Connecting to database...", flush=True)
         client = connect(
             host='clickhouse-md-svr',
             db='marketdata',
             usr='default',
             pwd='password')
-        if client is not None: print(f"Connected successfully.")
+        if client is not None: print(f"Connected successfully.", flush=True)
 
         init_schema(client, './sql')
-        print("Tables created successfully.")
+        print("Tables created successfully.", flush=True)
 
-        init_data(client=client, batch_size=100000)
-        print("Data inserted successfully.")
+        init_data(client=client, batch_size=1000)
+        print("Data inserted successfully.", flush=True)
 
         if (check_data(client)):
-           print("Data checked successfully.")
+           print("Data checked successfully.", flush=True)
         else:
-           print("Data checking failed - unexpected rows number.")
+           print("Data checking failed - unexpected rows number.", flush=True)
 
     except Exception as e:
-        print(f'Exception occurred in main(): {e}')
+        print(f'Exception occurred in main(): {e}', flush=True)
