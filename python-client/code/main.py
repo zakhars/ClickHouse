@@ -40,7 +40,6 @@ def check_data(client):
 
 if __name__ == '__main__':
     try:
-
         client = connect(
             host='clickhouse-md-svr',
             db='marketdata',
@@ -57,4 +56,4 @@ if __name__ == '__main__':
         if (check_data(client)): print("Data checked successfully.")
 
     except Exception as e:
-        print(f'Exception occurred in main(): {e}\nStack:{e.stacktrace}')
+        print(f'Exception occurred in main(): {e}')
