@@ -22,7 +22,7 @@ def init_data(client, batch_size=1):
     trades = []
     cur_ns = time.time_ns() - 1000000
     i = 0
-    for n in range(100000 // batch_size):
+    for n in range(10000 // batch_size):
         for m in range(batch_size):
             trades.append(
                 (random.randint(1,100),
@@ -39,7 +39,7 @@ def init_data(client, batch_size=1):
 
     quotes = []
     i = 0
-    for n in range(10000000 // batch_size):
+    for n in range(1000000 // batch_size):
         for m in range(batch_size):
             quotes.append(
                 (random.randint(1,100),
@@ -67,7 +67,33 @@ def check_data(client):
     for row in quotes.result_rows:
         print(row)
     print('\n')
-    return trades_row_count.result_rows[0][0] == 100000 and quotes_row_count.result_rows[0][0] == 10000000
+    return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
+
+def join_simple():
+    query = """
+         SELECT 
+             t.symbol,
+             t.local_ts,
+             t.price as trade_price,
+             t.qty,
+             q.local_ts,
+             q.bid_price,
+             q.ask_price,
+             (t.price - q.bid_price) as spread_to_bid,
+             (q.ask_price - t.price) as spread_to_ask
+         FROM default.md_trades AS t
+         ASOF LEFT JOIN default.md_quotes AS q
+             ON t.symbol = q.symbol 
+             AND q.local_ts <= t.local_ts 
+         WHERE t.symbol = 'f.ep.h26'
+         ORDER BY t.local_ts
+         LIMIT 100   
+    """
+    joined = client.query(query)
+    print('\nTop 100 joined')
+    for row in joined.result_rows:
+        print(row)
+    print('\n')
 
 
 if __name__ == '__main__':
