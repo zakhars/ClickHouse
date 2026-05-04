@@ -1,5 +1,5 @@
 import clickhouse_connect
-import datetime
+import time
 from pathlib import Path
 import random
 
@@ -20,15 +20,21 @@ def init_data(client, batch_size=1):
     client.query('TRUNCATE TABLE default.md_quotes')
 
     trades = []
+    cur_ns = time.time_ns() - 1000000
+    i = 0
     for n in range(10000 // batch_size):
         for m in range(batch_size):
-            trades.append((random.randint(1,100), random.randint(0,2), random.randint(1,1000), n * m / 1000,  n * m / 1000, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+            trades.append((random.randint(1,100), random.randint(0,2), random.randint(1,1000), cur_ns+i,  cur_ns+i, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+            i += 1
     client.insert('default.md_trades', trades, column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
+
     quotes = []
+    i = 0
     for n in range(1000000 // batch_size):
         for m in range(batch_size):
-            quotes.append((random.randint(1,100), random.randint(1,100), random.randint(1,1000), random.randint(1,1000), random.randint(1,1000), n * m / 1000,  n * m / 1000, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+            quotes.append((random.randint(1,100), random.randint(1,100), random.randint(1,1000), random.randint(1,1000), random.randint(1,1000), cur_ns + i,  cur_ns + i, random.choice(['f.ep.z26', 'f.ep.h26']), 'src', n * m))
+            i += 1
     client.insert('default.md_quotes', quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
 
