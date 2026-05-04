@@ -33,7 +33,7 @@ def init_data(client, batch_size=1):
                  random.choice(['f.ep.z26', 'f.ep.h26']),
                  'src',
                  n * m))
-            i += 1
+            i += 1000000
     client.insert('default.md_trades', trades, column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
 
@@ -51,7 +51,7 @@ def init_data(client, batch_size=1):
                  random.choice(['f.ep.z26', 'f.ep.h26']),
                  'src',
                  n * m))
-            i += 1
+            i += 1000000
     client.insert('default.md_quotes', quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
 
@@ -62,7 +62,7 @@ def check_data(client):
     print('\nTop 10 trades')
     for row in trades.result_rows:
         print(row)
-    quotes = client.query('select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts), exch_ts, symbol, source, seqno from default.md_quotes order by local_ts desc limit 10')
+    quotes = client.query('select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts), toString(exch_ts), symbol, source, seqno from default.md_quotes order by local_ts desc limit 10')
     print('\nTop 10 quotes')
     for row in quotes.result_rows:
         print(row)
