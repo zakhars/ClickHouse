@@ -58,11 +58,11 @@ def init_data(client, batch_size=1):
 def check_data(client):
     trades_row_count = client.query('SELECT COUNT(*) FROM default.md_trades')
     quotes_row_count = client.query('SELECT COUNT(*) FROM default.md_quotes')
-    trades = client.query('select toString(local_ts) from default.md_trades limit 10')
+    trades = client.query('select qty, side, price, toString(local_ts), toString(exch_ts), symbol, source, seqno from default.md_trades order by local_ts  limit 10')
     print('\nTop 10 trades')
     for row in trades.result_rows:
         print(row)
-    quotes = client.query('select toString(local_ts) from default.md_quotes limit 10')
+    quotes = client.query('select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts), exch_ts, symbol, source, seqno from default.md_quotes order by local_ts desc limit 10')
     print('\nTop 10 quotes')
     for row in quotes.result_rows:
         print(row)
