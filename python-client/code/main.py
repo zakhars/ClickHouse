@@ -4,7 +4,7 @@ from pathlib import Path
 import random
 
 def connect(host, db, usr, pwd):
-    client = clickhouse_connect.get_client(host=host, username=db, password=usr, database=pwd)
+    client = clickhouse_connect.get_client(host=host, username=usr, password=pwd, database=db)
     client.query('SELECT 1')
     return client
 
