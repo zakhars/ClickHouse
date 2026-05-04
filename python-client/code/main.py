@@ -58,6 +58,15 @@ def init_data(client, batch_size=1):
 def check_data(client):
     trades_row_count = client.query('SELECT COUNT(*) FROM default.md_trades')
     quotes_row_count = client.query('SELECT COUNT(*) FROM default.md_quotes')
+    trades = client.query('select * from default.md_trades limit 10')
+    print('\nTop 10 trades')
+    for row in trades.result_rows:
+        print(row)
+    quotes = client.query('select * from default.md_quotes limit 10')
+    print('\nTop 10 quotes')
+    for row in quotes.result_rows:
+        print(row)
+    print('\n')
     return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
 
 
