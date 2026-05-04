@@ -22,7 +22,7 @@ def init_data(client, batch_size=1):
     trades = []
     cur_ns = time.time_ns() - 1000000
     i = 0
-    for n in range(10000 // batch_size):
+    for n in range(1000000 // batch_size):
         for m in range(batch_size):
             trades.append(
                 (random.randint(1,100),
@@ -39,7 +39,7 @@ def init_data(client, batch_size=1):
 
     quotes = []
     i = 0
-    for n in range(1000000 // batch_size):
+    for n in range(100000000 // batch_size):
         for m in range(batch_size):
             quotes.append(
                 (random.randint(1,100),
@@ -67,7 +67,7 @@ def check_data(client):
     for row in quotes.result_rows:
         print(row)
     print('\n')
-    return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
+    return trades_row_count.result_rows[0][0] == 1000000 and quotes_row_count.result_rows[0][0] == 100000000
 
 
 if __name__ == '__main__':
@@ -85,7 +85,10 @@ if __name__ == '__main__':
         init_data(client=client, batch_size=100)
         print("Data inserted successfully.")
 
-        if (check_data(client)): print("Data checked successfully.")
+        if (check_data(client)):
+           print("Data checked successfully.")
+        else:
+           print("Data checking failed - unexpected rows number.")
 
     except Exception as e:
         print(f'Exception occurred in main(): {e}')
