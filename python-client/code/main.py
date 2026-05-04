@@ -69,7 +69,7 @@ def check_data(client):
     print('\n')
     return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
 
-def join_simple():
+def join_simple(client):
     query = """
          SELECT 
              t.symbol,
@@ -116,6 +116,9 @@ if __name__ == '__main__':
            print("Data checked successfully.", flush=True)
         else:
            print("Data checking failed - unexpected rows number.", flush=True)
+
+        join_simple(client=client)
+        print("Join executed successfully.", flush=True)
 
     except Exception as e:
         print(f'Exception occurred in main(): {e}', flush=True)
