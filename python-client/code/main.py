@@ -87,23 +87,18 @@ def join_simple(client):
              AND q.local_ts <= t.local_ts 
          WHERE t.symbol = 'f.ep.h26'
          ORDER BY t.local_ts
-         LIMIT 100   
     """
     joined = client.query(query)
-    print('\nTop 100 joined')
-    for row in joined.result_rows:
-        print(row)
-    print('\n')
+    # print('\nTop 100 joined')
+    # for row in joined.result_rows:
+    #     print(row)
+    #print('\n')
 
 
 if __name__ == '__main__':
     try:
         print("Connecting to database...", flush=True)
-        client = connect(
-            host='clickhouse-md-svr',
-            db='marketdata',
-            usr='default',
-            pwd='password')
+        client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
         if client is not None: print(f"Connected successfully.", flush=True)
 
         init_schema(client, './sql')
@@ -117,8 +112,12 @@ if __name__ == '__main__':
         else:
            print("Data checking failed - unexpected rows number.", flush=True)
 
-        join_simple(client=client)
-        print("Join executed successfully.", flush=True)
+        for i in range(1,10):
+           join_simple(client=client)
+           t1 = time.time()
+           print("Join executed successfully.", flush=True)
+           duration = time.time() - t1
+           print(f"Total execution {i} time: ", duration, flush=True)
 
     except Exception as e:
         print(f'Exception occurred in main(): {e}', flush=True)
