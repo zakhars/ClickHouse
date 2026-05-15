@@ -143,23 +143,23 @@ def main():
    try:
       print("Connecting to database -> ", flush=True, end='')
       client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
-      print(f"success" if client else "failure", flush=True)
+      print(f"-> success" if client else "-> failure", flush=True)
 
       print("Creating tables -> ", flush=True, end='')
       init_schema(client, './sql')
-      print("success", flush=True)
+      print("-> success", flush=True)
 
       print("Inserting data -> ", flush=True, end='')
       init_data(client=client, batch_size=1000)
-      print("success", flush=True)
+      print("-> success", flush=True)
 
       print("Checking data -> ", flush=True, end='')
       success = check_data(client)
-      print("success" if success else "failure - unexpected rows count", flush=True)
+      print("-> success" if success else "-> failure: unexpected rows count", flush=True)
 
       print("Joining -> ", flush=True, end='')
       join_simple(client=client)
-      print("success", flush=True)
+      print("-> success", flush=True)
 
    except Exception as e:
       print(f'Exception occurred in main(): {e}', flush=True)

@@ -8,7 +8,7 @@ services:
       - ./requirements.txt:/code/requirements.txt
     command: >
       sh -c "pip install --upgrade pip &&
-             pip install --no-cache-dir -r requirements.txt &&
+             pip install --no-cache-dir --root-user-action=ignore -r requirements.txt &&
              python main.py"
     networks:
       - clickhouse-net
