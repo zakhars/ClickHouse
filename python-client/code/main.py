@@ -109,7 +109,6 @@ def check_data(client):
     print('\nTop 10 quotes')
     for row in quotes.result_rows:
         print(row)
-    print('\n')
     return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
 
 @avg_time(n_calls=100, verbose=True)
@@ -141,23 +140,23 @@ def join_simple(client):
 
 def main():
    try:
-      print("Connecting to database -> ", flush=True, end='')
+      print("\nConnecting to database -> ", flush=True, end='')
       client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
       print(f"-> success" if client else "-> failure", flush=True)
 
-      print("Creating tables -> ", flush=True, end='')
+      print("\nCreating tables -> ", flush=True, end='')
       init_schema(client, './sql')
       print("-> success", flush=True)
 
-      print("Inserting data -> ", flush=True, end='')
+      print("\nInserting data -> ", flush=True, end='')
       init_data(client=client, batch_size=1000)
       print("-> success", flush=True)
 
-      print("Checking data -> ", flush=True, end='')
+      print("\nChecking data -> ", flush=True, end='')
       success = check_data(client)
       print("-> success" if success else "-> failure: unexpected rows count", flush=True)
 
-      print("Joining -> ", flush=True, end='')
+      print("\nJoining -> ", flush=True, end='')
       join_simple(client=client)
       print("-> success", flush=True)
 
