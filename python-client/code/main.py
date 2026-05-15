@@ -69,7 +69,7 @@ def check_data(client):
     print('\nTop 10 quotes')
     for row in quotes.result_rows:
         print(row)
-    return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
+    return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000, trades_row_count.result_rows[0][0], quotes_row_count.result_rows[0][0]
 
 @avg_time(n_calls=100, verbose=True)
 def join_simple(client):
@@ -114,8 +114,8 @@ def main():
          print("-> success", flush=True)
 
       print("\nChecking data -> ", flush=True, end='')
-      success = check_data(client)
-      print("-> success" if success else "-> failure: unexpected rows count", flush=True)
+      result = check_data(client)
+      print("-> success" if result[0] else f"-> failure: unexpected rows count: {result[1]}, {result[2]}", flush=True)
 
       print("\nJoining -> ", flush=True, end='')
       join_simple(client=client)
