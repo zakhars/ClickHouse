@@ -57,7 +57,7 @@ def init_schema(client, scripts_path):
         script = Path(script_name).read_text(encoding='utf-8')
         client.command(script)
 
-@avg_time(n_calls=50, verbose=True)
+@avg_time(n_calls=10, verbose=True)
 def init_data(client, batch_size=1):
     client.query('TRUNCATE TABLE default.md_trades')
     client.query('TRUNCATE TABLE default.md_quotes')
@@ -112,6 +112,7 @@ def check_data(client):
     print('\n')
     return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000
 
+@avg_time(n_calls=100, verbose=True)
 def join_simple(client):
     query = """
          SELECT 
@@ -140,27 +141,25 @@ def join_simple(client):
 
 def main():
    try:
-      print("Connecting to database...", flush=True)
+      print("Connecting to database -> ", flush=True, end='')
       client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
-      if client is not None: print(f"Connected successfully.", flush=True)
+      print(f"success" if client else "failure", flush=True)
 
+      print("Creating tables -> ", flush=True, end='')
       init_schema(client, './sql')
-      print("Tables created successfully.", flush=True)
+      print("success", flush=True)
 
+      print("Inserting data -> ", flush=True, end='')
       init_data(client=client, batch_size=1000)
-      print("Data inserted successfully.", flush=True)
+      print("success", flush=True)
 
-      if (check_data(client)):
-         print("Data checked successfully.", flush=True)
-      else:
-         print("Data checking failed - unexpected rows number.", flush=True)
+      print("Checking data -> ", flush=True, end='')
+      success = check_data(client)
+      print("success" if success else "failure - unexpected rows count", flush=True)
 
-      for i in range(1, 10):
-         join_simple(client=client)
-         t1 = time.time()
-         print("Join executed successfully.", flush=True)
-         duration = time.time() - t1
-         print(f"Total execution {i} time: ", duration, flush=True)
+      print("Joining -> ", flush=True, end='')
+      join_simple(client=client)
+      print("success", flush=True)
 
    except Exception as e:
       print(f'Exception occurred in main(): {e}', flush=True)
