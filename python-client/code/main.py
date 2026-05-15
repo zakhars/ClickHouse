@@ -1,7 +1,49 @@
+import sys
 import clickhouse_connect
 import time
 from pathlib import Path
 import random
+from functools import wraps
+import statistics
+
+def avg_time(n_calls=10, verbose=True, return_stats=False):
+   def decorator(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+         times = []
+
+         result = None
+         for i in range(n_calls):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            times.append(end_time - start_time)
+
+         avg_time = statistics.mean(times)
+         min_time = min(times)
+         max_time = max(times)
+         std_dev = statistics.stdev(times) if len(times) > 1 else 0
+
+         if verbose:
+            print(f"\nStats for function '{func.__name__}':")
+            print(f"   Calls: {n_calls}")
+            print(f"   Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
+            print(f"   Min: {min_time:.6f} s")
+            print(f"   Max: {max_time:.6f} s")
+            print(f"   Stddev: {std_dev:.6f} s")
+
+         if return_stats:
+            return result, {
+               'avg': avg_time,
+               'min': min_time,
+               'max': max_time,
+               'std': std_dev,
+               'times': times
+            }
+         return result
+      return wrapper
+   return decorator
+
 
 def connect(host, db, usr, pwd):
     client = clickhouse_connect.get_client(host=host, username=usr, password=pwd, database=db)
@@ -15,6 +57,7 @@ def init_schema(client, scripts_path):
         script = Path(script_name).read_text(encoding='utf-8')
         client.command(script)
 
+@avg_time(n_calls=50, verbose=True)
 def init_data(client, batch_size=1):
     client.query('TRUNCATE TABLE default.md_trades')
     client.query('TRUNCATE TABLE default.md_quotes')
@@ -95,29 +138,33 @@ def join_simple(client):
     #print('\n')
 
 
+def main():
+   try:
+      print("Connecting to database...", flush=True)
+      client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
+      if client is not None: print(f"Connected successfully.", flush=True)
+
+      init_schema(client, './sql')
+      print("Tables created successfully.", flush=True)
+
+      init_data(client=client, batch_size=1000)
+      print("Data inserted successfully.", flush=True)
+
+      if (check_data(client)):
+         print("Data checked successfully.", flush=True)
+      else:
+         print("Data checking failed - unexpected rows number.", flush=True)
+
+      for i in range(1, 10):
+         join_simple(client=client)
+         t1 = time.time()
+         print("Join executed successfully.", flush=True)
+         duration = time.time() - t1
+         print(f"Total execution {i} time: ", duration, flush=True)
+
+   except Exception as e:
+      print(f'Exception occurred in main(): {e}', flush=True)
+
+
 if __name__ == '__main__':
-    try:
-        print("Connecting to database...", flush=True)
-        client = connect(host='clickhouse-md-svr', db='marketdata', usr='default', pwd='password')
-        if client is not None: print(f"Connected successfully.", flush=True)
-
-        init_schema(client, './sql')
-        print("Tables created successfully.", flush=True)
-
-        init_data(client=client, batch_size=1000)
-        print("Data inserted successfully.", flush=True)
-
-        if (check_data(client)):
-           print("Data checked successfully.", flush=True)
-        else:
-           print("Data checking failed - unexpected rows number.", flush=True)
-
-        for i in range(1,10):
-           join_simple(client=client)
-           t1 = time.time()
-           print("Join executed successfully.", flush=True)
-           duration = time.time() - t1
-           print(f"Total execution {i} time: ", duration, flush=True)
-
-    except Exception as e:
-        print(f'Exception occurred in main(): {e}', flush=True)
+   sys.exit(main())
