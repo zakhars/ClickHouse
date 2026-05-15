@@ -17,7 +17,7 @@ def init_schema(client, scripts_path):
         script = Path(script_name).read_text(encoding='utf-8')
         client.command(script)
 
-@avg_time(n_calls=10, verbose=True)
+@avg_time(n_calls=1, verbose=True)
 def init_data(client, batch_size=1):
     client.query('TRUNCATE TABLE default.md_trades')
     client.query('TRUNCATE TABLE default.md_quotes')
@@ -71,7 +71,7 @@ def check_data(client):
         print(row)
     return trades_row_count.result_rows[0][0] == 10000 and quotes_row_count.result_rows[0][0] == 1000000, trades_row_count.result_rows[0][0], quotes_row_count.result_rows[0][0]
 
-@avg_time(n_calls=100, verbose=True)
+@avg_time(n_calls=10, verbose=True)
 def join_simple(client):
     query = """
          SELECT 
@@ -113,9 +113,9 @@ def main():
          init_data(client=client, batch_size=batch_size)
          print("-> success", flush=True)
 
-      print("\nChecking data -> ", flush=True, end='')
-      result = check_data(client)
-      print("-> success" if result[0] else f"-> failure: unexpected rows count: {result[1]}, {result[2]}", flush=True)
+         print("\nChecking data -> ", flush=True, end='')
+         result = check_data(client)
+         print("-> success" if result[0] else f"-> failure: unexpected rows count: {result[1]}, {result[2]}", flush=True)
 
       print("\nJoining -> ", flush=True, end='')
       join_simple(client=client)
