@@ -3,12 +3,14 @@ services:
     image: python:3.12-slim
     container_name: python312-container
     working_dir: /code
+    environment:
+      PIP_ROOT_USER_ACTION: ignore
     volumes:
       - ./code:/code
       - ./requirements.txt:/code/requirements.txt
     command: >
-      sh -c "pip install --upgrade pip  > /dev/nul &&
-             pip install --no-cache-dir -r requirements.txt > /dev/nul &&
+      sh -c "pip install --upgrade pip  > /dev/nul 2>&1 &&
+             pip install --no-cache-dir -r requirements.txt > /dev/nul 2>&1 &&
              python main.py"
     networks:
       - clickhouse-net
