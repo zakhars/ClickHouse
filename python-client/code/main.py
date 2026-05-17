@@ -26,13 +26,13 @@ def connect():
    return client
 
 def reset_database(client):
-   tables = client.query(f"SHOW TABLES FROM {CONFIG['datatbase']}").result_rows
+   tables = client.query(f"SHOW TABLES FROM {CONFIG['database']}").result_rows
    for table in tables:
       table_name = table[0]
       client.command(f'DROP TABLE IF EXISTS {table_name}')
 
 def truncate_data(client):
-   client.query(f'TRUNCATE DATABASE {CONFIG['datatbase']}')
+   client.query(f'TRUNCATE DATABASE {CONFIG['database']}')
 
 
 def init_schema(client, sc_scripts):
