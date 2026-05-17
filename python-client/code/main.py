@@ -22,7 +22,7 @@ NS_IN_MS   = 1_000_000
 
 def connect():
    client = clickhouse_connect.get_client(**CONFIG)
-   client.query('SELECT 1')
+   print(client.query(f'SHOW TABLES FROM {CONFIG['database']}'))
    return client
 
 def reset_database(client):
@@ -89,7 +89,6 @@ def gen_trades(trades_total, chunk_size):
 
 @avg_time(n_calls=1, verbose=True)
 def init_data(client, chunk_size=1):
-    truncate_data(client)
 
     context_quotes = client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_quotes(NUM_QOUTES, chunk_size):
@@ -141,6 +140,11 @@ def main():
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
       #init_schema(client, './sql')
       print("Success", flush=True)
+
+      print("\nTruncating data... ", flush=True, end='')
+      truncate_data(client)
+      print(f"Success", flush=True)
+
 
       for batch_size in [1, 10, 100, 1000, 10000]:
          print(f"\nInserting data with batch size {batch_size}... ", flush=True, end='')
