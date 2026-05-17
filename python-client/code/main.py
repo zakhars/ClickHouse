@@ -15,10 +15,10 @@ CONFIG = {
     'database': 'marketdata'
 }
 
-NUM_QOUTES = 1_000_000
-NUM_TRADES = 10_000
-NS_IN_SEC  = 1_000_000_000
-NS_IN_MS   = 1_000_000
+NUM_QOUTES = 1000
+NUM_TRADES = 100
+NS_IN_SEC  = 1000000000
+NS_IN_MS   = 1000000
 
 def connect():
    client = clickhouse_connect.get_client(**CONFIG)
@@ -143,7 +143,7 @@ def main():
       truncate_data(client)
       print(f"Success", flush=True)
 
-      for chunk_size in [10, 100, 1000, 10000]:
+      for chunk_size in [10]:
          print(f"\nInserting data with batch size {chunk_size}... ", flush=True, end='')
          init_data(client, chunk_size=chunk_size)
          print("Success", flush=True)
