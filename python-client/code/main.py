@@ -8,7 +8,8 @@ from utils import avg_time
 import sql
 
 CONFIG = {
-    'host': 'clickhouse-md-server',
+    'host': 'clickhouse-md-svr',
+    'port': 8123,
     'username': 'default',
     'password': 'password',
     'database': 'marketdata'
