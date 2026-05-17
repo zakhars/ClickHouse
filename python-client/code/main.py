@@ -30,6 +30,7 @@ def reset_database(client):
 
 def truncate_data(client):
    tables = client.query(f"SHOW TABLES FROM {CONFIG['database']}").result_rows
+   print("\n", flush=True)
    for table in tables:
       table_name = table[0]
       print(f"Truncating table {table_name}", flush=True)
@@ -93,11 +94,13 @@ def init_data(client, chunk_size=1):
     context_quotes = client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_quotes(NUM_QOUTES, chunk_size):
        context_quotes.data = chunk
+       print(len(chunk))
        client.insert(context_quotes)
 
     context_trades = client.create_insert_context(table='md_trades', column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_trades(NUM_TRADES, chunk_size):
        context_trades.data = chunk
+       print(len(chunk))
        client.insert(context_trades)
 
 
@@ -146,9 +149,9 @@ def main():
       truncate_data(client)
       print(f"Success", flush=True)
 
-      for batch_size in [1, 10, 100, 1000, 10000]:
-         print(f"\nInserting data with batch size {batch_size}... ", flush=True, end='')
-         init_data(client, chunk_size=batch_size)
+      for chunk_size in [10, 100, 1000, 10000]:
+         print(f"\nInserting data with batch size {chunk_size}... ", flush=True, end='')
+         init_data(client, chunk_size=chunk_size)
          print("Success", flush=True)
 
          print("\nChecking data... ", flush=True, end='')
@@ -160,7 +163,7 @@ def main():
       print("Success", flush=True)
 
    except Exception as e:
-      print(f'Exception occurred in main(): {e}', flush=True)
+      print(f'\n\nException occurred in main(): {e}', flush=True)
    finally:
       if client: client.close()
 
