@@ -8,10 +8,10 @@ from utils import avg_time
 import sql
 
 CONFIG = {
-    'host': 'clickhouse-md-svr',
+    'host': 'clickhouse-marketdata',
     'port': 8123,
-    'username': 'default',
-    'password': 'password',
+    'username': 'mduser',
+    'password': 'mdpassword',
     'database': 'marketdata'
 }
 
@@ -22,7 +22,7 @@ NS_IN_MS   = 1_000_000
 
 def connect():
    client = clickhouse_connect.get_client(**CONFIG)
-   print(client.query(f'SHOW TABLES FROM {CONFIG['database']}').result_rows)
+   print(f"Connected to a database {client.query('SELECT currentDatabase()').result_rows[0]}", flush=True)
    return client
 
 def reset_database(client):
@@ -126,6 +126,7 @@ def join_simple(client, rows_to_print=0):
 
 
 def main():
+   client = None
    try:
       print("\nConnecting to database... ", flush=True, end='')
       client = connect()
@@ -161,7 +162,8 @@ def main():
 
    except Exception as e:
       print(f'Exception occurred in main(): {e}', flush=True)
-
+   finally:
+      if client: client.close()
 
 if __name__ == '__main__':
    sys.exit(main())
