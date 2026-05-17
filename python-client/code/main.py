@@ -70,7 +70,7 @@ def gen_trades(trades_total, chunk_size):
 
 @avg_time(n_calls=1, verbose=True)
 def init_data(client, chunk_size=1):
-    client.truncate_data(client)
+    client.truncate_data()
 
     clt = client.client
     context_quotes = clt.client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
