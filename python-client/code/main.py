@@ -9,7 +9,6 @@ import sql
 
 CONFIG = {
     'host': 'clickhouse-md-server',
-    'port': 8123,
     'username': 'default',
     'password': 'password',
     'database': 'marketdata'
