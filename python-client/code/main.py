@@ -60,86 +60,58 @@ def init_schema_from_script_files(client, scripts_path):
       client.command(script)
 
 
-def gen_quotes(quotes_total, chunk_size):
+@trace('Inserting quotes')
+@avg_time(n_calls=1, verbose=True)
+def insert_quotes(client, chunk_size=1):
    time_ns = time.time_ns()
    rows_inserted = 0
-   for n in range(0, quotes_total, chunk_size):
+   for n in range(0, NUM_QUOTES, chunk_size):
       quotes = []
       for m in range(n, n + chunk_size):
          rows_inserted += 1
          quotes.append(
-            (random.randint(1, 100),  # bid_qty
-             random.randint(1, 100),  # ask_qty
+            (random.randint(1, 100),   # bid_qty
+             random.randint(1, 100),   # ask_qty
              random.randint(1, 1000),  # bid_price
              random.randint(1, 1000),  # ask_price
-             time_ns,  # local_ts
-             time_ns,  # exch_ts (same as local as it is not too important for this test)
+             time_ns,                  # local_ts
+             time_ns,                  # exch_ts (same as local as it is not too important for this test)
              random.choice(['f.ep.z26', 'f.ep.h26']),  # symbol
-             'cme',  # source
-             time_ns))  # seqno (any increasing number is suitable)
+             'cme',                    # source
+             time_ns))                 # seqno (any increasing number is suitable)
          # next quote comes within random interval from 1 ns to 1 sec
+         # TODO: make sure trades and quotes are distributed across the same time window
          time_ns = time_ns + random.randint(1, NS_IN_SEC)
-         yield quotes
-   if rows_inserted != quotes_total:
-      raise Exception(f'Wrong number of rows inserted into trades. Expected {quotes_total}, got {rows_inserted}')
+      client.insert(table='md_quotes', data=quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+   if rows_inserted != NUM_QUOTES:
+      raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_QUOTES}, got {rows_inserted}')
 
 
-def gen_trades(trades_total, chunk_size):
+@trace('Inserting trades')
+@avg_time(n_calls=1, verbose=True)
+def insert_trades(client, chunk_size=1):
    time_ns = time.time_ns()
    rows_inserted = 0
-   for n in range(0, trades_total, chunk_size):
-      trades = []
+   for n in range(0, NUM_TRADES, chunk_size):
+      quotes = []
       for m in range(n, n + chunk_size):
          rows_inserted += 1
-         trades.append(
-            (random.randint(1, 100),  # qty
-             random.randint(0, 2),  # side
-             random.randint(1, 1000),  # price
-             time_ns,  # local_ts
-             time_ns,  # exch_ts
-             random.choice(['f.ep.z26', 'f.ep.h26', 'f.ep.m27']),  # symbol (some can be absent in quotes)
-             'cme',  # source
-             time_ns))  # seqno
-         # next trade comes within random interval from 1 ns to 100 sec
-         # TODO: make sure trades and quotes are distributed across the same time window
-         time_ns = time_ns + random.randint(1, NS_IN_SEC * 100)
-      yield trades
-   if rows_inserted != trades_total:
-      raise Exception(f'Wrong number of rows inserted into trades. Expected {trades_total}, got {rows_inserted}')
-
-
-@trace('Inserting data')
-@avg_time(n_calls=1, verbose=True)
-def init_data(client, chunk_size=1):
-   # time_ns = time.time_ns()
-   # rows_inserted = 0
-   # for n in range(0, NUM_QUOTES, chunk_size):
-   #    quotes = []
-   #    for m in range(n, n + chunk_size):
-   #       rows_inserted += 1
-   #       quotes.append(
-   #          (random.randint(1, 100),  # bid_qty
-   #           random.randint(1, 100),  # ask_qty
-   #           random.randint(1, 1000),  # bid_price
-   #           random.randint(1, 1000),  # ask_price
-   #           time_ns,  # local_ts
-   #           time_ns,  # exch_ts (same as local as it is not too important for this test)
-   #           random.choice(['f.ep.z26', 'f.ep.h26']),  # symbol
-   #           'cme',  # source
-   #           time_ns))  # seqno (any increasing number is suitable)
-   #       # next quote comes within random interval from 1 ns to 1 sec
-   #       time_ns = time_ns + random.randint(1, NS_IN_SEC)
-   #    client.insert(table='md_quotes', data=quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
-   # if rows_inserted != quotes_total:
-   #    raise Exception(f'Wrong number of rows inserted into trades. Expected {quotes_total}, got {rows_inserted}')
-
-   for chunk in gen_quotes(NUM_QUOTES, chunk_size):
-      client.insert(table='md_quotes', data=chunk,
-                    column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol',
-                                  'source', 'seqno'])
-   for chunk in gen_trades(NUM_TRADES, chunk_size):
-      client.insert(table='md_trades', data=chunk,
+         quotes.append(
+            (random.randint(1, 100),   # bid_qty
+             random.randint(1, 100),   # ask_qty
+             random.randint(1, 1000),  # bid_price
+             random.randint(1, 1000),  # ask_price
+             time_ns,                  # local_ts
+             time_ns,                  # exch_ts (same as local as it is not too important for this test)
+             random.choice(['f.ep.z26', 'f.ep.h26']),  # symbol
+             'cme',                    # source
+             time_ns))                 # seqno (any increasing number is suitable)
+         # next quote comes within random interval from 1 ns to 1 sec
+         time_ns = time_ns + random.randint(1, NS_IN_SEC)
+      client.insert(table='md_quotes', data=quotes,
                     column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+   if rows_inserted != NUM_TRADES:
+      raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_TRADES}, got {rows_inserted}')
 
 
 @trace('Checking data')
@@ -184,7 +156,8 @@ def main():
       # reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
       truncate_data(client)
-      init_data(client, chunk_size=CHUNK_SIZE)
+      insert_quotes(client, chunk_size=CHUNK_SIZE)
+      insert_trades(client, chunk_size=CHUNK_SIZE)
       check_data(client, True)
       get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
