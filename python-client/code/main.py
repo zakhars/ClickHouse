@@ -16,9 +16,10 @@ CONFIG = {
    'database': 'marketdata'
 }
 
-NUM_QUOTES = 100000
+NUM_QUOTES = 1000000
 NUM_TRADES = 10000
-CHUNK_SIZE = 1000
+CHUNK_SIZE_QUOTES = 1000000
+CHUNK_SIZE_TRADES = 10000
 NS_IN_SEC = 1000000000
 
 
@@ -156,8 +157,8 @@ def main():
       # reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
       truncate_data(client)
-      insert_quotes(client, chunk_size=CHUNK_SIZE)
-      insert_trades(client, chunk_size=CHUNK_SIZE)
+      insert_quotes(client, chunk_size=CHUNK_SIZE_QUOTES)
+      insert_trades(client, chunk_size=CHUNK_SIZE_TRADES)
       check_data(client, True)
       get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
