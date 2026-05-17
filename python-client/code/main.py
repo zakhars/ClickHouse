@@ -94,12 +94,12 @@ def init_data(client, chunk_size=1):
     context_quotes = client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_quotes(NUM_QOUTES, chunk_size):
        context_quotes.data = chunk
-       client.insert_context(context_quotes)
+       client.insert(context_quotes)
 
     context_trades = client.create_insert_context(table='md_trades', column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_trades(NUM_TRADES, chunk_size):
        context_trades.data = chunk
-       client.insert_context(context_trades)
+       client.insert(context_trades)
 
 
 def check_data(client, verbose=False):
@@ -144,7 +144,7 @@ def main():
 
       for batch_size in [1, 10, 100, 1000, 10000]:
          print(f"\nInserting data with batch size {batch_size}... ", flush=True, end='')
-         init_data(client.client, chunk_size=batch_size)
+         init_data(client, chunk_size=batch_size)
          print("Success", flush=True)
 
          print("\nChecking data... ", flush=True, end='')
