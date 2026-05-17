@@ -22,7 +22,7 @@ NS_IN_MS   = 1_000_000
 
 def connect():
    client = clickhouse_connect.get_client(**CONFIG)
-   print(client.query(f'SHOW TABLES FROM {CONFIG['database']}'))
+   print(client.query(f'SHOW TABLES FROM {CONFIG['database']}').result_rows)
    return client
 
 def reset_database(client):
