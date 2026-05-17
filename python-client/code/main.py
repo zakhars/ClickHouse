@@ -136,6 +136,11 @@ def check_data(client, verbose=False):
     if quotes_row_count.result_rows[0][0] != NUM_QUOTES or trades_row_count.result_rows[0][0] != NUM_TRADES:
        raise Exception('Wrong number of quotes or trades')
 
+@trace('Checking sizes')
+def get_physical_size(client):
+   sizes = client.query('SELECT database, table, formatReadableSize(sum(bytes_on_disk)) AS size_on_disk FROM system.parts WHERE active = 1 GROUP BY database, table')
+   print_clickhouse_rowset(sizes)
+
 
 @trace('Joining')
 @avg_time(n_calls=1)
@@ -154,6 +159,7 @@ def main():
       truncate_data(client)
       init_data(client, chunk_size=CHUNK_SIZE)
       check_data(client, True)
+      get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
