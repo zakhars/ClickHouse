@@ -18,8 +18,6 @@ CONFIG = {
 
 NUM_QUOTES = 1000000
 NUM_TRADES = 10000
-CHUNK_SIZE_QUOTES = 1000000
-CHUNK_SIZE_TRADES = 10000
 NS_IN_SEC = 1000000000
 
 
@@ -64,6 +62,7 @@ def init_schema_from_script_files(client, scripts_path):
 @trace('Inserting quotes')
 @avg_time(n_calls=1, verbose=True)
 def insert_quotes(client, chunk_size=1):
+   if chunk_size > NUM_QUOTES: chunk_size = NUM_QUOTES
    time_ns = time.time_ns()
    rows_inserted = 0
    for n in range(NUM_QUOTES // chunk_size):
@@ -90,6 +89,7 @@ def insert_quotes(client, chunk_size=1):
 @trace('Inserting trades')
 @avg_time(n_calls=1, verbose=True)
 def insert_trades(client, chunk_size=1):
+   if chunk_size > NUM_TRADES: chunk_size = NUM_TRADES
    time_ns = time.time_ns()
    rows_inserted = 0
    for n in range(NUM_TRADES // chunk_size):
@@ -154,11 +154,12 @@ def main():
    client = None
    try:
       client = connect()
-      # reset_database(client) # Drop tables to be able to re-create them each time with custom settings
+      reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
-      truncate_data(client)
-      insert_quotes(client, chunk_size=CHUNK_SIZE_QUOTES)
-      insert_trades(client, chunk_size=CHUNK_SIZE_TRADES)
+      for chunk_size in [1000, 10000, 100000, 1000000]:
+         truncate_data(client)
+         insert_quotes(client, chunk_size)
+         insert_trades(client, chunk_size)
       check_data(client, True)
       get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
