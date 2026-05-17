@@ -20,6 +20,7 @@ NUM_QUOTES = 1000000
 NUM_TRADES = 10000
 CHUNK_SIZE = 1000
 NS_IN_SEC = 1000000000
+NS_IN_MS = 1000000
 
 
 @trace('Connecting to server')
@@ -81,7 +82,7 @@ def insert_quotes(client, chunk_size=1):
              time_ns))                 # seqno (any increasing number is suitable)
          # next quote comes within random interval from 1 ns to 1 sec
          # TODO: make sure trades and quotes are distributed across the same time window
-         time_ns = time_ns + random.randint(1, NS_IN_SEC)
+         time_ns = time_ns + random.randint(1, NS_IN_MS)
       client.insert(table='md_quotes', data=quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
    if rows_inserted != NUM_QUOTES:
       raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_QUOTES}, got {rows_inserted}')
@@ -107,8 +108,8 @@ def insert_trades(client, chunk_size=1):
              'cme',                    # source
              time_ns))                 # seqno (any increasing number is suitable)
          # next quote comes within random interval from 1 ns to 1 sec
-         time_ns = time_ns + random.randint(1, NS_IN_SEC)
-      client.insert(table='md_quotes', data=quotes,
+         time_ns = time_ns + random.randint(1, NS_IN_MS)
+      client.insert(table='md_trades', data=quotes,
                     column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
    if rows_inserted != NUM_TRADES:
       raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_TRADES}, got {rows_inserted}')
