@@ -136,9 +136,9 @@ def check_data(client, verbose=False):
     if quotes_row_count.result_rows[0][0] != NUM_QUOTES or trades_row_count.result_rows[0][0] != NUM_TRADES:
        raise Exception('Wrong number of quotes or trades')
 
-@trace('Checking sizes')
+@trace('Checking DB sizes')
 def get_physical_size(client):
-   sizes = client.query('SELECT database, table, formatReadableSize(sum(bytes_on_disk)) AS size_on_disk FROM system.parts WHERE active = 1 GROUP BY database, table')
+   sizes = client.query(f'SELECT database, table, formatReadableSize(sum(bytes_on_disk)) AS size_on_disk FROM system.parts WHERE database={CONFIG['database']} GROUP BY table')
    print_clickhouse_rowset(sizes)
 
 

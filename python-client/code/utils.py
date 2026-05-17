@@ -59,8 +59,9 @@ def print_clickhouse_rowset(result, num_rows=0):
    rows = result.result_rows
 
    widths = [len(str(col)) for col in columns]
-   for i, val in enumerate(rows[0]):
-      widths[i] = max(widths[i], len(str(val)))
+   for row in rows[:10]:
+      for i, val in enumerate(row):
+         widths[i] = max(widths[i], len(str(val)))
 
    header = " | ".join(str(col).ljust(widths[i]) for i, col in enumerate(columns))
    print(header)
