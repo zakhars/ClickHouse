@@ -16,7 +16,7 @@ CONFIG = {
    'database': 'marketdata'
 }
 
-NUM_QUOTES = 1000000
+NUM_QUOTES = 100000
 NUM_TRADES = 10000
 CHUNK_SIZE = 1000
 NS_IN_SEC = 1000000000
@@ -135,8 +135,9 @@ def check_data(client, verbose=False):
 
 @trace('Checking DB sizes')
 def get_physical_size(client):
+   dbname = CONFIG['database']
    sizes = client.query(
-      f'SELECT database, table, formatReadableSize(sum(bytes_on_disk)) AS size_on_disk FROM system.parts WHERE database="{CONFIG['database']}" GROUP BY table')
+      f"SELECT database, table, sum(bytes_on_disk) AS size_on_disk FROM system.parts WHERE database='{dbname}' GROUP BY table")
    print_clickhouse_rowset(sizes)
 
 
