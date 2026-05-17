@@ -20,7 +20,6 @@ NUM_QUOTES = 1000000
 NUM_TRADES = 10000
 CHUNK_SIZE = 1000
 NS_IN_SEC = 1000000000
-NS_IN_MS = 1000000
 
 
 @trace('Connecting to server')
@@ -66,9 +65,9 @@ def init_schema_from_script_files(client, scripts_path):
 def insert_quotes(client, chunk_size=1):
    time_ns = time.time_ns()
    rows_inserted = 0
-   for n in range(0, NUM_QUOTES, chunk_size):
+   for n in range(NUM_QUOTES // chunk_size):
       quotes = []
-      for m in range(n, n + chunk_size):
+      for m in range(chunk_size):
          rows_inserted += 1
          quotes.append(
             (random.randint(1, 100),   # bid_qty
@@ -81,8 +80,7 @@ def insert_quotes(client, chunk_size=1):
              'cme',                    # source
              time_ns))                 # seqno (any increasing number is suitable)
          # next quote comes within random interval from 1 ns to 1 sec
-         # TODO: make sure trades and quotes are distributed across the same time window
-         time_ns = time_ns + random.randint(1, NS_IN_MS)
+         time_ns = time_ns + random.randint(1, NS_IN_SEC)
       client.insert(table='md_quotes', data=quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
    if rows_inserted != NUM_QUOTES:
       raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_QUOTES}, got {rows_inserted}')
@@ -93,22 +91,22 @@ def insert_quotes(client, chunk_size=1):
 def insert_trades(client, chunk_size=1):
    time_ns = time.time_ns()
    rows_inserted = 0
-   for n in range(0, NUM_TRADES, chunk_size):
+   for n in range(NUM_TRADES // chunk_size):
       quotes = []
-      for m in range(n, n + chunk_size):
+      for m in range(chunk_size):
          rows_inserted += 1
          quotes.append(
-            (random.randint(1, 100),   # bid_qty
-             random.randint(1, 100),   # ask_qty
-             random.randint(1, 1000),  # bid_price
-             random.randint(1, 1000),  # ask_price
-             time_ns,                  # local_ts
-             time_ns,                  # exch_ts (same as local as it is not too important for this test)
-             random.choice(['f.ep.z26', 'f.ep.h26']),  # symbol
-             'cme',                    # source
-             time_ns))                 # seqno (any increasing number is suitable)
-         # next quote comes within random interval from 1 ns to 1 sec
-         time_ns = time_ns + random.randint(1, NS_IN_MS)
+            (random.randint(1, 100),  # qty
+             random.randint(0, 2),    # side
+             random.randint(1, 1000), # price
+             time_ns,                 # local_ts
+             time_ns,                 # exch_ts
+             random.choice(['f.ep.z26', 'f.ep.h26', 'f.ep.m27']), # symbol (some can be absent in quotes)
+             'cme',                   # source
+             time_ns))                # seqno
+         # next trade comes within random interval from 1 ns to 100 sec
+         # TODO: make sure trades and quotes are distributed across the same time window
+         time_ns = time_ns + random.randint(1, NS_IN_SEC)
       client.insert(table='md_trades', data=quotes,
                     column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
    if rows_inserted != NUM_TRADES:
