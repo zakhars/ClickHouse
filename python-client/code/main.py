@@ -138,6 +138,7 @@ def get_physical_size(client):
    dbname = CONFIG['database']
    sizes = client.query(
       f"SELECT table, sum(bytes_on_disk) AS size_on_disk FROM system.parts WHERE database='{dbname}' GROUP BY table")
+   print('\nTables sizes:')
    print_clickhouse_rowset(sizes)
 
 

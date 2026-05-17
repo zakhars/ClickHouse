@@ -64,7 +64,6 @@ def print_clickhouse_rowset(result, num_rows=0):
          widths[i] = max(widths[i], len(str(val)))
 
    header = " | ".join(str(col).ljust(widths[i]) for i, col in enumerate(columns))
-   print('\n', header)
    print("-" * len(header))
 
    if num_rows > 0:
