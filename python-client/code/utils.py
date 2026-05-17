@@ -40,3 +40,35 @@ def avg_time(n_calls=10, verbose=True, return_stats=False):
          return result
       return wrapper
    return decorator
+
+
+def trace(msg, enabled=True):
+   def decorator(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+         if enabled: print(f"\n{msg}... ", flush=True, end='')
+         result = func(*args, **kwargs)
+         if enabled: print(f"Success", flush=True)
+         return result
+      return wrapper
+   return decorator
+
+
+def print_clickhouse_rowset(result, num_rows=0):
+   columns = result.column_names
+   rows = result.result_rows
+
+   widths = [len(str(col)) for col in columns]
+   for i, val in enumerate(rows[0]):
+      widths[i] = max(widths[i], len(str(val)))
+
+   header = " | ".join(str(col).ljust(widths[i]) for i, col in enumerate(columns))
+   print(header)
+   print("-" * len(header))
+
+   if num_rows > 0:
+      for row in rows[:num_rows]:
+         print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row)))
+   elif num_rows == 0:
+      for row in rows:
+         print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row)))
