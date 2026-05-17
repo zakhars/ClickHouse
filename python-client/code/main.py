@@ -22,18 +22,18 @@ NS_IN_MS   = 1_000_000
 
 def connect():
    client = clickhouse_connect.get_client(**CONFIG)
-   print(f"Connected to a database {client.query('SELECT currentDatabase()').result_rows[0]}", flush=True)
+   print(f"Connected to a database {client.query('SELECT currentDatabase()').result_rows[0][0]}", flush=True)
    return client
 
 def reset_database(client):
+   client.query(f'TRUNCATE DATABASE {CONFIG['database']}')
+
+def truncate_data(client):
    tables = client.query(f"SHOW TABLES FROM {CONFIG['database']}").result_rows
    for table in tables:
       table_name = table[0]
-      client.command(f'DROP TABLE IF EXISTS {table_name}')
-
-def truncate_data(client):
-   client.query(f'TRUNCATE DATABASE {CONFIG['database']}')
-
+      print(f"Truncating table {table_name}", flush=True)
+      client.command(f'TRUNCATE TABLE {table_name}')
 
 def init_schema(client, sc_scripts):
    for script in sc_scripts:
@@ -145,7 +145,6 @@ def main():
       print("\nTruncating data... ", flush=True, end='')
       truncate_data(client)
       print(f"Success", flush=True)
-
 
       for batch_size in [1, 10, 100, 1000, 10000]:
          print(f"\nInserting data with batch size {batch_size}... ", flush=True, end='')
