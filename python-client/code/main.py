@@ -2,19 +2,38 @@ import sys
 import time
 from pathlib import Path
 import random
+import clickhouse_connect
 
 from utils import avg_time
 import sql
-from clickhouse_db import clickhouse_db_connection
 
-DBHOST = 'clickhouse-md-svr'
-DBNAME = 'marketdata'
-DBUSER = 'default'
-DBPASS = 'password'
+CONFIG = {
+    'host': 'clickhouse-md-server',
+    'port': 8123,
+    'username': 'default',
+    'password': 'password',
+    'database': 'marketdata'
+}
+
 NUM_QOUTES = 1_000_000
 NUM_TRADES = 10_000
 NS_IN_SEC  = 1_000_000_000
 NS_IN_MS   = 1_000_000
+
+def connect():
+   client = clickhouse_connect.get_client(**CONFIG)
+   client.query('SELECT 1')
+   return client
+
+def reset_database(client):
+   tables = client.query(f"SHOW TABLES FROM {CONFIG['datatbase']}").result_rows
+   for table in tables:
+      table_name = table[0]
+      client.command(f'DROP TABLE IF EXISTS {table_name}')
+
+def truncate_data(client):
+   client.query(f'TRUNCATE DATABASE {CONFIG['datatbase']}')
+
 
 def init_schema(client, sc_scripts):
    for script in sc_scripts:
@@ -70,7 +89,7 @@ def gen_trades(trades_total, chunk_size):
 
 @avg_time(n_calls=1, verbose=True)
 def init_data(client, chunk_size=1):
-    client.truncate_data()
+    truncate_data(client)
 
     context_quotes = client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_quotes(NUM_QOUTES, chunk_size):
@@ -80,7 +99,7 @@ def init_data(client, chunk_size=1):
     context_trades = client.create_insert_context(table='md_trades', column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_trades(NUM_TRADES, chunk_size):
        context_trades.data = chunk
-       insert_context(context_trades)
+       client.insert_context(context_trades)
 
 
 def check_data(client, verbose=False):
@@ -110,12 +129,12 @@ def join_simple(client, rows_to_print=0):
 def main():
    try:
       print("\nConnecting to database... ", flush=True, end='')
-      client = clickhouse_db_connection(host=DBHOST, db=DBNAME, usr=DBUSER, pwd=DBPASS)
+      client = connect()
       print(f"Success", flush=True)
 
       # Drop tables to be able to re-create them each time with custom settings
       print("\nDropping all tables... ", flush=True, end='')
-      client.reset_database()
+      reset_database(client)
       print("Success", flush=True)
 
       print("\nCreating tables... ", flush=True, end='')
