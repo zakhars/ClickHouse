@@ -157,7 +157,7 @@ def main():
       reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
       print('\nInsert data by various chunk sizes', flush=True)
-      for chunk_size in [100, 1000, 10000, 100000, 1000000]:
+      for chunk_size in [10000, 50000, 100000, 1000000]:
          print(f'\nChunk size {chunk_size}', flush=True)
          truncate_data(client)
          insert_quotes(client, chunk_size)
