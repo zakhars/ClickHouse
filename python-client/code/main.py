@@ -38,7 +38,6 @@ def reset_database(client):
 @trace('Truncating data')
 def truncate_data(client):
    tables = client.query(f"SHOW TABLES FROM {CONFIG['database']}").result_rows
-   print("\n", flush=True)
    for table in tables:
       table_name = table[0]
       client.command(f'TRUNCATE TABLE {table_name}')

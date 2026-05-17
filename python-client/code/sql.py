@@ -1,5 +1,5 @@
 sc_create_table_md_quotes = """
-   CREATE TABLE IF NOT EXISTS md_quotes
+   CREATE TABLE IF NOT EXISTS marketdata.md_quotes
    (
        `bid_qty` UInt64 CODEC(DoubleDelta, LZ4),
        `ask_qty` UInt64 CODEC(DoubleDelta, LZ4),
@@ -18,7 +18,7 @@ sc_create_table_md_quotes = """
 """
 
 sc_create_table_md_trades = """
-   CREATE TABLE IF NOT EXISTS md_trades
+   CREATE TABLE IF NOT EXISTS marketdata.md_trades
    (
        `qty` UInt64 CODEC(DoubleDelta, LZ4),
        `side` Enum8('undef' = 0, 'buy' = 1, 'sell' = 2) CODEC(LZ4),
@@ -47,8 +47,8 @@ q_simple_asof_join = """
          q.ask_price as ask_price,
          (t.price - q.bid_price) as spread_to_bid,
          (q.ask_price - t.price) as spread_to_ask
-     FROM md_trades AS t
-     ASOF LEFT JOIN md_quotes AS q
+     FROM marketdata.md_trades AS t
+     ASOF LEFT JOIN marketdata.md_quotes AS q
          ON t.symbol = q.symbol 
          AND q.local_ts <= t.local_ts 
      WHERE t.symbol = 'f.ep.h26'
