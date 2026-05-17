@@ -2,7 +2,7 @@ from functools import wraps
 import statistics
 import time
 
-
+# Decorator to measure function execution time and show stats
 def avg_time(n_calls=10, verbose=True, return_stats=False):
    def decorator(func):
       @wraps(func)
