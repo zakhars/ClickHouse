@@ -103,11 +103,11 @@ def check_data(client, verbose=False):
        quotes = client.query("""
          select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts), symbol from md_quotes order by local_ts asc limit 5 union all
          select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts), symbol from md_quotes order by local_ts desc limit 5""")
-       print('\nQuotes', *[quotes.result_rows], sep='\n')
+       print('\nQuotes', *quotes.result_rows, sep='\n')
        trades = client.query("""
          select qty, side, price, toString(local_ts), symbol from md_trades order by local_ts asc limit 5 union all
          select qty, side, price, toString(local_ts), symbol from md_trades order by local_ts desc limit 5""")
-       print('\nTrades', *[trades.result_rows], sep='\n')
+       print('\nTrades', *trades.result_rows, sep='\n')
 
     quotes_row_count = client.query('SELECT COUNT(*) FROM md_quotes')
     trades_row_count = client.query('SELECT COUNT(*) FROM md_trades')
@@ -119,7 +119,7 @@ def join_simple(client, rows_to_print=0):
     joined = client.query(sql.q_simple_asof_join)
     rows_total = joined.result_rows[0][0]
     print('\nNumber of rows returned by JOIN', rows_total)
-    if rows_to_print: print(f'\nTop {rows_to_print} joined', *[joined.result_rows[:rows_to_print]], sep='\n')
+    if rows_to_print: print(f'\nTop {rows_to_print} joined', *joined.result_rows[:rows_to_print], sep='\n')
 
 
 def main():
@@ -153,7 +153,7 @@ def main():
          print("Success" if success else "!!!Failure: unexpected rows count", flush=True)
 
       print("\nJoining... ", flush=True, end='')
-      join_simple(client=client, verbose=True)
+      join_simple(client=client, rows_to_print=10)
       print("Success", flush=True)
 
    except Exception as e:
