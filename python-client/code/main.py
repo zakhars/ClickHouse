@@ -16,8 +16,9 @@ CONFIG = {
     'database': 'marketdata'
 }
 
-NUM_QUOTES = 10000
-NUM_TRADES = 1000
+NUM_QUOTES = 100000
+NUM_TRADES = 10000
+CHUNK_SIZE = 1000
 NS_IN_SEC  = 1000000000
 
 
@@ -149,12 +150,11 @@ def main():
    client = None
    try:
       client = connect()
-      reset_database(client) # Drop tables to be able to re-create them each time with custom settings
+      #reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
-      for chunk_size in [100]:
-         truncate_data(client)
-         init_data(client, chunk_size=chunk_size)
-         check_data(client, True)
+      truncate_data(client)
+      init_data(client, chunk_size=CHUNK_SIZE)
+      check_data(client, True)
       join_simple(client=client, rows_to_print=10)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
