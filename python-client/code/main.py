@@ -91,17 +91,11 @@ def gen_trades(trades_total, chunk_size):
 @avg_time(n_calls=1, verbose=True)
 def init_data(client, chunk_size=1):
 
-    context_quotes = client.create_insert_context(table='md_quotes', column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_quotes(NUM_QOUTES, chunk_size):
-       context_quotes.data = chunk
-       print(len(chunk))
-       client.insert(context_quotes)
+       client.insert(table='md_quotes', data=chunk, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
-    context_trades = client.create_insert_context(table='md_trades', column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
     for chunk in gen_trades(NUM_TRADES, chunk_size):
-       context_trades.data = chunk
-       print(len(chunk))
-       client.insert(context_trades)
+       client.insert(table='md_trades', data=chunk, column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
 
 def check_data(client, verbose=False):
