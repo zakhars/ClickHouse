@@ -154,7 +154,7 @@ def insert_trades(client, quotes, chunk_size=1):
       quote_ts_exch = quote[5]
       qty = random.randint(1, 1000)
 
-      trade_shift_ts = 0 #random.randint(0, 1000) # trade is at the same time or up to 1 usec later than quote
+      trade_shift_ts = random.randint(0, 1000) # trade is at the same time or up to 1 usec later than quote
 
       local_ts = quote_ts_local + trade_shift_ts
       exch_ts  = quote_ts_exch  + trade_shift_ts
@@ -250,7 +250,7 @@ def main():
       insert_trades(client, quotes, chunk_size=100000)
       check_data(client, True)
       get_physical_size(client)
-      join_simple(client=client, rows_to_print=10)
+      join_simple(client=client, rows_to_print=1000)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
       traceback.print_exc()
