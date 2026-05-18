@@ -69,7 +69,7 @@ q_simple_asof_join = """
      FROM md_trades AS t
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
-         AND q.local_ts <= t.local_ts 
+         AND t.local_ts >= q.local_ts  
      WHERE t.symbol = 'f.ep.h26'
      ORDER BY t.local_ts
 """
