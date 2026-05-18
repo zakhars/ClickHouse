@@ -36,7 +36,7 @@ sc_create_table_md_trades = """
 """
 
 q_simple_asof_join = """
-     EXPLAIN indexes = 1
+     --EXPLAIN indexes = 1
      SELECT 
          t.symbol,
          t.side as trade_side,
@@ -51,6 +51,7 @@ q_simple_asof_join = """
      FROM md_trades AS t
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
-         AND t.local_ts >= q.local_ts   
+         AND t.local_ts >= q.local_ts
+     --WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
      --PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """
