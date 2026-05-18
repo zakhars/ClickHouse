@@ -6,6 +6,7 @@ import clickhouse_connect
 import traceback
 from datetime import datetime, timezone, timedelta
 from itertools import islice
+import numpy as np
 
 from utils import avg_time, trace, print_clickhouse_rowset
 import sql
@@ -116,7 +117,7 @@ def insert_quotes(client, chunk_size=1):
    end = begin + chunk_size
    while begin < len(quotes):
       # insert chunk
-      client.insert(table='md_quotes', data=islice(quotes, begin, end),
+      client.insert(table='md_quotes', data=quotes[begin:end],
          column_names=['bid_qty','ask_qty','bid_price','ask_price','local_ts','exch_ts','symbol','source','seqno'])
 
       rows_inserted += chunk_size
@@ -181,7 +182,7 @@ def insert_trades(client, quotes, chunk_size=1):
    end = begin + chunk_size
    while begin < len(trades):
       # insert chunk
-      client.insert(table='md_trades', data=islice(trades, begin, end),
+      client.insert(table='md_trades', data=trades[begin:end],
          column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
 
       rows_inserted += chunk_size
