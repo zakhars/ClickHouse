@@ -36,6 +36,7 @@ sc_create_table_md_trades = """
 """
 
 q_simple_asof_join = """
+     EXPLAIN indexes = 1
      SELECT 
          t.symbol,
          t.side as trade_side,
