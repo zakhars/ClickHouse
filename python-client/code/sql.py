@@ -14,7 +14,7 @@ sc_create_table_md_quotes = """
    ENGINE = MergeTree
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
-   SETTINGS index_granularity = 1024;
+   SETTINGS index_granularity = 128;
 """
 
 sc_create_table_md_trades = """
@@ -32,7 +32,7 @@ sc_create_table_md_trades = """
    ENGINE = MergeTree
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
-   SETTINGS index_granularity = 1024;
+   SETTINGS index_granularity = 128;
 """
 
 q_simple_asof_join = """
