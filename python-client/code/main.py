@@ -154,7 +154,7 @@ def insert_trades(client, quotes, chunk_size=1):
       quote_ts_exch = quote[5]
       qty = random.randint(1, 1000)
 
-      trade_shift_ts = random.randint(0, NS_IN_SEC) # trade is at the same time or up to 1 sec later than quote
+      trade_shift_ts = random.randint(0, 1000) # trade is at the same time or up to 1 usec later than quote
 
       local_ts = quote_ts_local + trade_shift_ts
       exch_ts  = quote_ts_exch  + trade_shift_ts
@@ -231,7 +231,7 @@ def get_physical_size(client):
 
 
 @trace('Joining')
-@avg_time(n_calls=100)
+@avg_time(n_calls=1)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join)
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}. Top {rows_to_print} rows:')
