@@ -1,12 +1,9 @@
 import sys
-import time
 from pathlib import Path
 import random
 import clickhouse_connect
 import traceback
 from datetime import datetime, timezone, timedelta
-from itertools import islice
-import numpy as np
 
 from utils import avg_time, trace, print_clickhouse_rowset
 import sql
