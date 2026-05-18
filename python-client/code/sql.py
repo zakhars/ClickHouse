@@ -12,7 +12,7 @@ sc_create_table_md_quotes = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toHour(local_ts)
+   PARTITION BY toDay(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS index_granularity = 8192;
 """
@@ -30,7 +30,7 @@ sc_create_table_md_trades = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toHour(local_ts)
+   PARTITION BY toDay(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS index_granularity = 8192;
 """
@@ -48,6 +48,7 @@ q_simple_asof_join = """
          round(t.price - q.bid_price, 5) as spread_to_bid,
          round(q.ask_price - t.price, 5) as spread_to_ask
      FROM md_trades AS t
+     WHERE trade_local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts   
