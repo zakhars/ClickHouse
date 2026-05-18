@@ -238,7 +238,6 @@ def join_simple(client, rows_to_print=-1):
    {
       'join_algorithm': 'full_sorting_merge',
       'optimize_read_in_order': 1,
-      'max_bytes_before_external_join': 0,
       'join_use_nulls': 0
    })
    #joined = client.query(sql.q_simple_asof_join)
