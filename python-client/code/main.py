@@ -194,18 +194,24 @@ def insert_trades(client, quotes, chunk_size=1):
 def check_data(client, verbose=False):
    if verbose:
       quotes = client.query(f"""
+         with ranked as (
          select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_quotes
-         where seqno <= 5 or seqno >= (select max(seqno) - 5 from md_quotes)
-         order by seqno
+         from md_quotes order by local_ts asc limit 5
+         union all
+         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         from md_quotes order by local_ts desc limit 5)
+         select * from ranked order by local_ts
       """)
       print('\nQuotes')
       print_clickhouse_rowset(quotes, 10)
       trades = client.query(f"""
+         with ranked as (
          select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_trades
-         where seqno <= 5 or seqno >= (select max(seqno) - 5 from md_trades)
-         order by seqno
+         from md_trades order by local_ts asc limit 5
+         union all
+         select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         from md_trades order by local_ts desc limit 5)
+         select * from ranked order by local_ts
       """)
       print('\nTrades')
       print_clickhouse_rowset(trades, 10)
