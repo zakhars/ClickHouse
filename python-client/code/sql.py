@@ -14,7 +14,13 @@ sc_create_table_md_quotes = """
    ENGINE = MergeTree
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
-   SETTINGS index_granularity = 128;
+   SETTINGS 
+      index_granularity = 1024
+--      min_rows_for_wide_part = 0,   -- Не ждать накопления
+--      merge_max_block_size = 8192,  -- Меньше блоки = быстрее слияние
+--      compress_marks = 1,           -- Сжимать метки (экономия памяти)
+--      compress_primary_key = 1      -- Сжимать ключ
+   ;
 """
 
 sc_create_table_md_trades = """
@@ -32,13 +38,15 @@ sc_create_table_md_trades = """
    ENGINE = MergeTree
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
-   SETTINGS index_granularity = 128;
+   SETTINGS 
+      index_granularity = 1024
+--      min_rows_for_wide_part = 0,   -- Не ждать накопления
+--      merge_max_block_size = 8192,  -- Меньше блоки = быстрее слияние
+--      compress_marks = 1,           -- Сжимать метки (экономия памяти)
+--      compress_primary_key = 1      -- Сжимать ключ
+   ;
 """
 q_simple_asof_join = """
-
-     SET max_threads = 2;
-     SET join_use_nulls = 0;   
-
      --EXPLAIN indexes = 1
      SELECT 
          t.symbol,
