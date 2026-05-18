@@ -102,7 +102,7 @@ def insert_quotes(client, chunk_size=1):
       bid_price = round(middle_price - bid_ask_spread, 5) # tick size 0.00001
       ask_price = round(middle_price + bid_ask_spread, 5)
 
-      quotes.append((bid_qty, ask_qty, bid_price, ask_price, local_ts, exch_ts, symbol, source, f'{seqno:08d}'))
+      quotes.append((bid_qty, ask_qty, bid_price, ask_price, local_ts, exch_ts, symbol, source, seqno))
 
       # next quote comes within random interval from 1 ns to 1 sec
       next_quote_ts_shift = random.randint(1, NS_IN_SEC)
@@ -168,7 +168,7 @@ def insert_trades(client, quotes, chunk_size=1):
       else:
          price = round((ask_price + bid_price) / 2, 5) # TODO: is this a correct idea?
 
-      trades.append((qty, side, price, local_ts, exch_ts, symbol, source, f'{seqno:08d}'))
+      trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
 
       seqno += 1
       del available_quotes[index] # do not reuse same quote twice for trade
