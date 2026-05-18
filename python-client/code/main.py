@@ -195,10 +195,10 @@ def check_data(client, verbose=False):
    if verbose:
       quotes = client.query("""
          with ranked as (
-         select bid_qty, ask_qty, format('{:.5f}', bid_price) as bid_price, format('{:.5f}', ask_price) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
          from md_quotes order by local_ts asc limit 5
          union all
-         select bid_qty, ask_qty, format('{:.5f}', bid_price) as bid_price, format('{:.5f}', ask_price) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
          from md_quotes order by local_ts desc limit 5)
          select * from ranked order by local_ts
       """)
@@ -206,10 +206,10 @@ def check_data(client, verbose=False):
       print_clickhouse_rowset(quotes, 10)
       trades = client.query("""
          with ranked as (
-         select qty, side, format('{:.5f}', price) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
          from md_trades order by local_ts asc limit 5
          union all
-         select qty, side, format('{:.5f}', price) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+         select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
          from md_trades order by local_ts desc limit 5)
          select * from ranked order by local_ts
       """)
