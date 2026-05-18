@@ -70,6 +70,5 @@ q_simple_asof_join = """
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts  
-     WHERE t.symbol = 'f.ep.h26'
      ORDER BY t.local_ts
 """
