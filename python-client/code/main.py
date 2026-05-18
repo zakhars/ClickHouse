@@ -18,7 +18,8 @@ CONFIG = {
 
 NUM_QUOTES = 1000000
 NUM_TRADES = 10000
-NS_IN_SEC = 1000000000
+INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
+REGENERATE_DATA = False
 
 
 BASE_DATA = {
@@ -39,6 +40,7 @@ BASE_DATA = {
 BASE_TS_LOCAL  = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours=-3))).timestamp()) * NS_IN_SEC
 BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours= 5))).timestamp()) * NS_IN_SEC
 
+NS_IN_SEC = 1000000000
 
 @trace('Connecting to server')
 def connect():
@@ -231,7 +233,7 @@ def get_physical_size(client):
 
 
 @trace('Joining')
-@avg_time(n_calls=1, verbose=True)
+@avg_time(n_calls=10, verbose=True)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join)
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}. Top {rows_to_print} rows:')
@@ -242,14 +244,14 @@ def main():
    client = None
    try:
       client = connect()
-      reset_database(client) # Drop tables to be able to re-create them each time with custom settings
-      init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
-      #for chunk_size in [10000, 50000, 100000, 1000000]: - optimal is 100000
-      truncate_data(client)
-      quotes = insert_quotes(client, chunk_size=100000)
-      insert_trades(client, quotes, chunk_size=100000)
-      check_data(client, True)
-      get_physical_size(client)
+      if REGENERATE_DATA:
+         reset_database(client) # Drop tables to be able to re-create them each time with custom settings
+         init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
+         truncate_data(client)
+         quotes = insert_quotes(client, chunk_size=INSERT_CHUNK_SIZE)
+         insert_trades(client, quotes, chunk_size=INSERT_CHUNK_SIZE)
+         check_data(client, True)
+         get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
