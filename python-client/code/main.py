@@ -154,7 +154,7 @@ def insert_trades(client, quotes, chunk_size=1):
       quote_ts_exch = quote[5]
       qty = random.randint(1, 1000)
 
-      trade_shift_ts = random.randint(0, 1000) # trade is at the same time or up to 1 usec later than quote
+      trade_shift_ts = random.randint(0, NS_IN_SEC // 10000) # trade is at the same time or up to 100 μs later than quote
 
       local_ts = quote_ts_local + trade_shift_ts
       exch_ts  = quote_ts_exch  + trade_shift_ts
