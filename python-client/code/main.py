@@ -86,7 +86,7 @@ def insert_quotes(client, chunk_size=1):
    local_ts = BASE_TS_LOCAL
    exch_ts  = BASE_TS_EXCH
    min_ts = local_ts # save earliest timestamp
-   seqno = 0
+   seqno = 1
    quotes = []
    for i in range(NUM_QUOTES):
       source = random.choice(sources)
@@ -94,7 +94,6 @@ def insert_quotes(client, chunk_size=1):
       symbol = BASE_DATA[source][contract_idx][0]
       bid_qty = random.randint(10, 1000)
       ask_qty = random.randint(10, 1000)
-      seqno += 1  # any increasing number is suitable
 
       base_price = BASE_DATA[source][contract_idx][1]
       price_deviation = random.uniform(-0.01, 0.01)
@@ -109,6 +108,7 @@ def insert_quotes(client, chunk_size=1):
       next_quote_ts_shift = random.randint(1, NS_IN_SEC)
       local_ts += next_quote_ts_shift
       exch_ts  += next_quote_ts_shift
+      seqno += 1  # any increasing number is suitable
 
    rows_inserted = 0
    begin = 0
@@ -140,10 +140,8 @@ def insert_trades(client, quotes, chunk_size=1):
    available_quotes = [i for i in range(len(quotes))]
    sides = [0, 1, 2]
    weights = [0.02, 0.44, 0.44] # undef is less frequent, than bid and ask
-   seqno = 0
-
+   seqno = 1
    trades = []
-
    for i in range(NUM_TRADES):
       index = random.randrange(len(available_quotes))
       quote_idx = available_quotes[index]
@@ -155,7 +153,6 @@ def insert_trades(client, quotes, chunk_size=1):
       quote_ts_local = quote[4]
       quote_ts_exch = quote[5]
       qty = random.randint(1, 1000)
-      seqno += 1
 
       trade_shift_ts = random.randint(0, NS_IN_SEC) # trade is at the same time or up to 1 sec later than quote
 
@@ -173,6 +170,7 @@ def insert_trades(client, quotes, chunk_size=1):
 
       trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
 
+      seqno += 1
       del available_quotes[index] # do not reuse same quote twice for trade
 
 
