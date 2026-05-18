@@ -235,7 +235,7 @@ def get_physical_size(client):
 @avg_time(n_calls=10, verbose=True)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join)
-   print(f'\nNumber of rows returned by JOIN: {joined.row_count}. Top {rows_to_print} rows:')
+   print(f'\nNumber of rows returned by JOIN: {joined.row_count}')
    print_clickhouse_rowset(joined, rows_to_print)
 
 
