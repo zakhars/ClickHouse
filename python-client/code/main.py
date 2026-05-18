@@ -251,7 +251,7 @@ def main():
          insert_trades(client, quotes, chunk_size=INSERT_CHUNK_SIZE)
          check_data(client, True)
          get_physical_size(client)
-      join_simple(client=client, rows_to_print=10)
+      join_simple(client=client, rows_to_print=0)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
       traceback.print_exc()
