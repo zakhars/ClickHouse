@@ -55,6 +55,8 @@ def trace(msg, enabled=True):
 
 
 def print_clickhouse_rowset(result, num_rows=0):
+   if num_rows < 0: return
+
    columns = result.column_names
    rows = result.result_rows
 
