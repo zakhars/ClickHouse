@@ -231,7 +231,7 @@ def get_physical_size(client):
 
 
 @trace('Joining')
-@avg_time(n_calls=1)
+@avg_time(n_calls=1, verbose=True)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join)
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}. Top {rows_to_print} rows:')
@@ -250,7 +250,7 @@ def main():
       insert_trades(client, quotes, chunk_size=100000)
       check_data(client, True)
       get_physical_size(client)
-      join_simple(client=client, rows_to_print=1000)
+      join_simple(client=client, rows_to_print=10)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
       traceback.print_exc()
