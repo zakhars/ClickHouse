@@ -144,7 +144,8 @@ def insert_trades(client, quotes, chunk_size=1):
    trades = []
 
    for i in range(NUM_TRADES):
-      quote_idx = random.choice(available_quotes)
+      index = random.randrange(len(available_quotes))
+      quote_idx = available_quotes[index]
       quote = quotes[quote_idx]
       symbol = quote[6]
       source = quote[6]
@@ -171,7 +172,7 @@ def insert_trades(client, quotes, chunk_size=1):
 
       trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
 
-      del available_quotes[quote_idx] # do not reuse same quote twice for trade
+      del available_quotes[index] # do not reuse same quote twice for trade
 
 
    rows_inserted = 0
