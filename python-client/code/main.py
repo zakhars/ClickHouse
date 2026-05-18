@@ -245,7 +245,7 @@ def main():
       client = connect()
       if REGENERATE_DATA:
          reset_database(client) # Drop tables to be able to re-create them each time with custom settings
-         init_schema(client, [sql.sc_create_table_md_quotes_part_yd, sql.sc_create_table_md_trades_part_yd])
+         init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
          truncate_data(client)
          quotes = insert_quotes(client, chunk_size=INSERT_CHUNK_SIZE)
          insert_trades(client, quotes, chunk_size=INSERT_CHUNK_SIZE)
