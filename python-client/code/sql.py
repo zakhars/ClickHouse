@@ -11,7 +11,7 @@ sc_create_table_md_quotes = """
        `source` LowCardinality(String) CODEC(LZ4),
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
-   ENGINE = MergeTree
+   ENGINE = Memory
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS index_granularity = 8192;
@@ -30,7 +30,7 @@ sc_create_table_md_quotes_part_yd = """
        `source` LowCardinality(String) CODEC(LZ4),
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
-   ENGINE = MergeTree
+   ENGINE = Memory
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS index_granularity = 8192;
@@ -48,7 +48,7 @@ sc_create_table_md_trades = """
        `source` LowCardinality(String) CODEC(LZ4),
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
-   ENGINE = MergeTree
+   ENGINE = Memory
    PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS index_granularity = 8192;
