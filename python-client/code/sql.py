@@ -38,7 +38,7 @@ sc_create_table_md_trades = """
 """
 
 sc_create_table_md_trades_memory = """
-   CREATE TABLE trades_in_memory
+   CREATE TABLE IF NOT EXISTS trades_in_memory
    ENGINE = Join(ANY, LEFT, symbol, local_ts)
    AS SELECT * FROM md_trades;
 """
