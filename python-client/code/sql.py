@@ -12,15 +12,10 @@ sc_create_table_md_quotes = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toYearWeek(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
-      index_granularity = 1024,
-      min_rows_for_wide_part = 0,   -- Не ждать накопления
-      merge_max_block_size = 8192,  -- Меньше блоки = быстрее слияние
-      compress_marks = 1,           -- Сжимать метки (экономия памяти)
-      compress_primary_key = 1      -- Сжимать ключ
-   ;
+      index_granularity = 1024;
 """
 
 sc_create_table_md_trades = """
@@ -36,16 +31,12 @@ sc_create_table_md_trades = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toYearWeek(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
-      index_granularity = 1024,
-      min_rows_for_wide_part = 0,   -- Не ждать накопления
-      merge_max_block_size = 8192,  -- Меньше блоки = быстрее слияние
-      compress_marks = 1,           -- Сжимать метки (экономия памяти)
-      compress_primary_key = 1      -- Сжимать ключ
-   ;
+      index_granularity = 1024;
 """
+
 q_simple_asof_join = """
      --EXPLAIN indexes = 1
      SELECT 
@@ -63,10 +54,6 @@ q_simple_asof_join = """
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts
---     FROM md_quotes AS q
---     ASOF LEFT JOIN md_trades AS t
---         ON q.symbol = t.symbol 
---         AND q.local_ts <= t.local_ts
 --     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
---     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """

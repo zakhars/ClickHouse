@@ -16,8 +16,8 @@ CONFIG = {
    'database': 'marketdata'
 }
 
-NUM_QUOTES = 1000000
-NUM_TRADES = 10000
+NUM_QUOTES = 10000000
+NUM_TRADES = 100000
 INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
 REGENERATE_DATA = True
 
