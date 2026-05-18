@@ -48,10 +48,14 @@ q_simple_asof_join = """
          round(q.ask_price, 5) as ask_price,
          round(t.price - q.bid_price, 5) as spread_to_bid,
          round(q.ask_price - t.price, 5) as spread_to_ask
-     FROM md_trades AS t
-     ASOF LEFT JOIN md_quotes AS q
-         ON t.symbol = q.symbol 
-         AND t.local_ts >= q.local_ts
-     --WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
-     --PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     FROM md_quotes AS q
+     ASOF LEFT JOIN md_trades AS t
+         ON q.symbol = t.symbol 
+         AND q.local_ts <= t.local_ts
+--     FROM md_trades AS t
+--     ASOF LEFT JOIN md_quotes AS q
+--         ON t.symbol = q.symbol 
+--         AND t.local_ts >= q.local_ts
+--     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
+--     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """
