@@ -57,15 +57,15 @@ sc_create_table_md_trades = """
 q_simple_asof_join = """
      SELECT 
          t.symbol,
-         t.price as trade_price,
          t.side as trade_side,
          t.qty as trade_qty,
          t.local_ts as trade_local_ts,
          q.local_ts as quote_local_ts,
-         q.bid_price as bid_price,
-         q.ask_price as ask_price,
-         (t.price - q.bid_price) as spread_to_bid,
-         (q.ask_price - t.price) as spread_to_ask
+         format('{:.5f}', t.price) as trade_price,
+         format('{:.5f}', q.bid_price) as bid_price,
+         format('{:.5f}', q.ask_price) as ask_price,
+         format('{:.5f}', t.price - q.bid_price) as spread_to_bid,
+         format('{:.5f}', q.ask_price - t.price) as spread_to_ask
      FROM md_trades AS t
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
