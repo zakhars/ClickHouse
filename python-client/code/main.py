@@ -193,19 +193,21 @@ def insert_trades(client, quotes, chunk_size=1):
 @trace('Checking data')
 def check_data(client, verbose=False):
    if verbose:
+      # select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+      # from md_quotes
+      # where seqno <= 5 or seqno >= {NUM_QUOTES-5}
+      # order by seqno
       quotes = client.query(f"""
-         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno 
-         from md_quotes 
-         where seqno <= 5 or seqno >= {NUM_QUOTES-5} 
-         order by seqno
+         select min(seqno), max(seqno) from md_quotes
       """)
       print('\nQuotes')
       print_clickhouse_rowset(quotes, 10)
+      # select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+      # from md_trades
+      # where seqno <= 5 or seqno >= {NUM_TRADES-5}
+      # order by seqno
       trades = client.query(f"""
-         select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno 
-         from md_trades 
-         where seqno <= 5 or seqno >= {NUM_TRADES-5} 
-         order by seqno
+         select min(seqno), max(seqno) from md_trades
       """)
       print('\nTrades')
       print_clickhouse_rowset(trades, 10)
