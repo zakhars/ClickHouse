@@ -19,7 +19,7 @@ CONFIG = {
 NUM_QUOTES = 10000000
 NUM_TRADES = 100000
 INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
-REGENERATE_DATA = False
+REGENERATE_DATA = True
 
 BASE_DATA = {
    'CME':   [('F.EPZ26',      100),
@@ -236,9 +236,7 @@ def get_physical_size(client):
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join, settings=
    {
-      'join_algorithm': 'full_sorting_merge',
-      'optimize_read_in_order': 1,
-      'join_use_nulls': 0
+      'join_algorithm': 'full_sorting_merge'
    })
    #joined = client.query(sql.q_simple_asof_join)
 
