@@ -37,10 +37,10 @@ BASE_DATA = {
              ('F.SDAS9H27',   10)]
 }
 
+NS_IN_SEC = 1000000000
 BASE_TS_LOCAL  = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours=-3))).timestamp()) * NS_IN_SEC
 BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours= 5))).timestamp()) * NS_IN_SEC
 
-NS_IN_SEC = 1000000000
 
 @trace('Connecting to server')
 def connect():
