@@ -86,6 +86,7 @@ def insert_quotes(client, chunk_size=1):
    local_ts = BASE_TS_LOCAL
    exch_ts  = BASE_TS_EXCH
    min_ts = local_ts # save earliest timestamp
+   seqno = 0
    quotes = []
    for i in range(NUM_QUOTES):
       source = random.choice(sources)
@@ -93,7 +94,7 @@ def insert_quotes(client, chunk_size=1):
       symbol = BASE_DATA[source][contract_idx][0]
       bid_qty = random.randint(10, 1000)
       ask_qty = random.randint(10, 1000)
-      seqno = local_ts  # any increasing number is suitable
+      seqno += 1  # any increasing number is suitable
 
       base_price = BASE_DATA[source][contract_idx][1]
       price_deviation = random.uniform(-0.01, 0.01)
@@ -195,13 +196,13 @@ def insert_trades(client, quotes, chunk_size=1):
 def check_data(client, verbose=False):
    if verbose:
       quotes = client.query("""
-         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, symbol from md_quotes order by local_ts asc limit 5 union all
-         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, symbol from md_quotes order by local_ts desc limit 5""")
+         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno from md_quotes order by local_ts asc limit 5 union all
+         select bid_qty, ask_qty, bid_price, ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno from md_quotes order by local_ts desc limit 5""")
       print('\nQuotes')
       print_clickhouse_rowset(quotes, 10)
       trades = client.query("""
-         select qty, side, price, toString(local_ts) as local_ts, symbol from md_trades order by local_ts asc limit 5 union all
-         select qty, side, price, toString(local_ts) as local_ts, symbol from md_trades order by local_ts desc limit 5""")
+         select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno from md_trades order by local_ts desc limit 5 union all
+         select qty, side, price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno from md_trades order by local_ts asc  limit 5""")
       print('\nTrades')
       print_clickhouse_rowset(trades, 10)
 
