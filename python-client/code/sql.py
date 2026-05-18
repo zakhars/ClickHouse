@@ -12,7 +12,7 @@ sc_create_table_md_quotes = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toYYYYMMDD(local_ts)
+   PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 1024;
@@ -31,7 +31,7 @@ sc_create_table_md_trades = """
        `seqno` UInt64 CODEC(DoubleDelta, LZ4)
    )
    ENGINE = MergeTree
-   PARTITION BY toYYYYMMDD(local_ts)
+   PARTITION BY toYearWeek(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 1024;
