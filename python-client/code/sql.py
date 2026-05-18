@@ -37,6 +37,12 @@ sc_create_table_md_trades = """
       index_granularity = 1024;
 """
 
+sc_create_table_md_trades_memory = """
+   CREATE TABLE trades_in_memory
+   ENGINE = Join(ANY, LEFT, symbol, local_ts)
+   AS SELECT * FROM md_trades;
+"""
+
 q_simple_asof_join = """
      --EXPLAIN indexes = 1
      SELECT 
@@ -56,4 +62,24 @@ q_simple_asof_join = """
          AND t.local_ts >= q.local_ts
      WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
 --     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+"""
+
+q_asof_join_memory = """
+     SELECT 
+         t.symbol,
+         t.side as trade_side,
+         t.qty as trade_qty,
+         t.local_ts as trade_local_ts,
+         q.local_ts as quote_local_ts,
+         round(t.price, 5) as trade_price,
+         round(q.bid_price, 5) as bid_price,
+         round(q.ask_price, 5) as ask_price,
+         round(t.price - q.bid_price, 5) as spread_to_bid,
+         round(q.ask_price - t.price, 5) as spread_to_ask
+     FROM trades_in_memory AS t
+     ASOF LEFT JOIN md_quotes AS q
+         ON t.symbol = q.symbol 
+         AND t.local_ts >= q.local_ts
+--     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
+     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """
