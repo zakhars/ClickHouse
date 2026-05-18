@@ -4,6 +4,8 @@ from pathlib import Path
 import random
 import clickhouse_connect
 import traceback
+from datetime import datetime, timezone, timedelta
+from itertools import islice
 
 from utils import avg_time, trace, print_clickhouse_rowset
 import sql
@@ -19,6 +21,25 @@ CONFIG = {
 NUM_QUOTES = 1000000
 NUM_TRADES = 10000
 NS_IN_SEC = 1000000000
+
+
+BASE_DATA = {
+   'CME':   [('F.EPZ26',      100),
+             ('F.ENQH26',     200),
+             ('F.ENQM27',     230),
+             ('F.EPU27',      150)
+             ],
+   'NYMEX': [('C.BP6H27110',  10),
+             ('P.EU6Z27150',  25),
+             ('C.EU6Z261000', 15)
+             ],
+   'LME':   [('F.SDAS3H28',   20),
+             ('F.SDAS9H27',   25),
+             ('F.SDAS9H27',   10)]
+}
+
+BASE_TS_LOCAL  = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours=-3))).timestamp()) * NS_IN_SEC
+BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours= 5))).timestamp()) * NS_IN_SEC
 
 
 @trace('Connecting to server')
@@ -63,55 +84,112 @@ def init_schema_from_script_files(client, scripts_path):
 @avg_time(n_calls=1, verbose=True)
 def insert_quotes(client, chunk_size=1):
    if chunk_size > NUM_QUOTES: chunk_size = NUM_QUOTES
-   time_ns = time.time_ns()
+   sources = list(BASE_DATA.keys())
+   local_ts = BASE_TS_LOCAL
+   exch_ts  = BASE_TS_EXCH
+   min_ts = local_ts # save earliest timestamp
+   quotes = []
+   for i in range(NUM_QUOTES):
+      source = random.choice(sources)
+      contract_idx = random.randint(0, len(BASE_DATA[source])-1) # pick arbitrary symbol/price
+      symbol = BASE_DATA[source][contract_idx][0]
+      bid_qty = random.randint(10, 1000)
+      ask_qty = random.randint(10, 1000)
+      seqno = local_ts  # any increasing number is suitable
+
+      base_price = BASE_DATA[source][contract_idx][1]
+      price_deviation = random.uniform(-0.01, 0.01)
+      middle_price = base_price * (1 + price_deviation)
+      bid_ask_spread = middle_price * random.uniform(0.001, 0.010)
+      bid_price = round(middle_price - bid_ask_spread, 5) # tick size 0.00001
+      ask_price = round(middle_price + bid_ask_spread, 5)
+
+      quotes.append((bid_qty, ask_qty, bid_price, ask_price, local_ts, exch_ts, symbol, source, seqno))
+
+      # next quote comes within random interval from 1 ns to 1 sec
+      next_quote_ts_shift = random.randint(1, NS_IN_SEC)
+      local_ts += next_quote_ts_shift
+      exch_ts  += next_quote_ts_shift
+
    rows_inserted = 0
-   for n in range(NUM_QUOTES // chunk_size):
-      quotes = []
-      for m in range(chunk_size):
-         rows_inserted += 1
-         quotes.append(
-            (random.randint(1, 100),   # bid_qty
-             random.randint(1, 100),   # ask_qty
-             random.randint(1, 1000),  # bid_price
-             random.randint(1, 1000),  # ask_price
-             time_ns,                  # local_ts
-             time_ns,                  # exch_ts (same as local as it is not too important for this test)
-             random.choice(['f.ep.z26', 'f.ep.h26']),  # symbol
-             'cme',                    # source
-             time_ns))                 # seqno (any increasing number is suitable)
-         # next quote comes within random interval from 1 ns to 1 sec
-         time_ns = time_ns + random.randint(1, NS_IN_SEC)
-      client.insert(table='md_quotes', data=quotes, column_names=['bid_qty', 'ask_qty', 'bid_price', 'ask_price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+   begin = 0
+   end = begin + chunk_size
+   while begin < len(quotes):
+      # insert chunk
+      client.insert(table='md_quotes', data=islice(quotes, begin, end),
+         column_names=['bid_qty','ask_qty','bid_price','ask_price','local_ts','exch_ts','symbol','source','seqno'])
+
+      rows_inserted += chunk_size
+      begin += chunk_size
+      end += chunk_size
+
    if rows_inserted != NUM_QUOTES:
-      raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_QUOTES}, got {rows_inserted}')
+      raise Exception(f'Wrong number of rows inserted into md_quotes. Expected {NUM_QUOTES}, got {rows_inserted}')
+
+   min_dt = datetime.fromtimestamp(min_ts   // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
+   max_dt = datetime.fromtimestamp(local_ts // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
+   print(f'\nQuotes time range is {min_dt} to {max_dt}')
+
+   return quotes
 
 
 @trace('Inserting trades')
 @avg_time(n_calls=1, verbose=True)
-def insert_trades(client, chunk_size=1):
+def insert_trades(client, quotes, chunk_size=1):
    if chunk_size > NUM_TRADES: chunk_size = NUM_TRADES
-   time_ns = time.time_ns()
+
+   available_quotes = [i for i in range(len(quotes))]
+   sides = [0, 1, 2]
+   weights = [0.02, 0.44, 0.44] # undef is less frequent, than bid and ask
+   seqno = 0
+
+   trades = []
+
+   for i in range(NUM_TRADES):
+      quote_idx = random.choice(available_quotes)
+      quote = quotes[quote_idx]
+      symbol = quote[6]
+      source = quote[6]
+      bid_price = quote[2]
+      ask_price = quote[3]
+      quote_ts_local = quote[4]
+      quote_ts_exch = quote[5]
+      qty = random.randint(1, 1000)
+      seqno += 1
+
+      trade_shift_ts = random.randint(0, NS_IN_SEC) # trade is at the same time or up to 1 sec later than quote
+
+      local_ts = quote_ts_local + trade_shift_ts
+      exch_ts  = quote_ts_exch  + trade_shift_ts
+
+      side = random.choices(sides, weights=weights, k=1)[0]
+
+      if side == 1: # buy
+         price = ask_price
+      elif side == 2: # sell
+         price = bid_price
+      else:
+         price = round((ask_price + bid_price) / 2, 5) # TODO: is this a correct idea?
+
+      trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
+
+      del available_quotes[quote_idx] # do not reuse same quote twice for trade
+
+
    rows_inserted = 0
-   for n in range(NUM_TRADES // chunk_size):
-      quotes = []
-      for m in range(chunk_size):
-         rows_inserted += 1
-         quotes.append(
-            (random.randint(1, 100),  # qty
-             random.randint(0, 2),    # side
-             random.randint(1, 1000), # price
-             time_ns,                 # local_ts
-             time_ns,                 # exch_ts
-             random.choice(['f.ep.z26', 'f.ep.h26', 'f.ep.m27']), # symbol (some can be absent in quotes)
-             'cme',                   # source
-             time_ns))                # seqno
-         # next trade comes within random interval from 1 ns to 100 sec
-         # TODO: make sure trades and quotes are distributed across the same time window
-         time_ns = time_ns + random.randint(1, NS_IN_SEC)
-      client.insert(table='md_trades', data=quotes,
-                    column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+   begin = 0
+   end = begin + chunk_size
+   while begin < len(trades):
+      # insert chunk
+      client.insert(table='md_trades', data=islice(trades, begin, end),
+         column_names=['qty', 'side', 'price', 'local_ts', 'exch_ts', 'symbol', 'source', 'seqno'])
+
+      rows_inserted += chunk_size
+      begin += chunk_size
+      end += chunk_size
+
    if rows_inserted != NUM_TRADES:
-      raise Exception(f'Wrong number of rows inserted into trades. Expected {NUM_TRADES}, got {rows_inserted}')
+      raise Exception(f'Wrong number of rows inserted into md_trades. Expected {NUM_QUOTES}, got {rows_inserted}')
 
 
 @trace('Checking data')
@@ -156,12 +234,10 @@ def main():
       client = connect()
       reset_database(client) # Drop tables to be able to re-create them each time with custom settings
       init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
-      print('\nInsert data by various chunk sizes', flush=True)
-      for chunk_size in [10000, 50000, 100000, 1000000]:
-         print(f'\nChunk size {chunk_size}', flush=True)
-         truncate_data(client)
-         insert_quotes(client, chunk_size)
-         insert_trades(client, chunk_size)
+      #for chunk_size in [10000, 50000, 100000, 1000000]: - optimal is 100000
+      truncate_data(client)
+      quotes = insert_quotes(client, chunk_size=100000)
+      insert_trades(client, quotes, chunk_size=100000)
       check_data(client, True)
       get_physical_size(client)
       join_simple(client=client, rows_to_print=10)
