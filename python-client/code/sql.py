@@ -61,6 +61,6 @@ q_simple_asof_join = """
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts
 --     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
-     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+--     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """
 
