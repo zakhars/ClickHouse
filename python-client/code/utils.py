@@ -79,6 +79,6 @@ def print_clickhouse_rowset(result, num_rows=0):
       for val, type, width in zip(row, types, widths):
          if is_datetime_type(type):
             val = val.isoformat()
-         formatted_values.append(str(val).ljust(width))
+         formatted_values.append(str(val).ljust(width) + f'___{type}')
       row_to_print = " | ".join(formatted_values)
       print(row_to_print)
