@@ -78,7 +78,11 @@ def print_clickhouse_rowset(result, num_rows=0):
       formatted_values = []
       for val, type, width in zip(row, types, widths):
          if is_datetime_type(type):
-            val = val.isoformat()
+            microseconds = val.microsecond
+            nanoseconds = val.nanosecond if hasattr(val, 'nanosecond') else 0
+            total_nanoseconds = microseconds * 1000 + nanoseconds
+            val = val.strftime('%Y-%m-%d %H:%M:%S') + f'.{total_nanoseconds:09d}'
          formatted_values.append(str(val).ljust(width))
       row_to_print = " | ".join(formatted_values)
       print(row_to_print)
+
