@@ -246,14 +246,14 @@ def join_simple(client, rows_to_print=-1):
       # }
       )
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}', flush=True)
-   #print_clickhouse_rowset(joined, rows_to_print)
+   print_clickhouse_rowset(joined, rows_to_print)
 
 @trace('Selecting from MV')
 @avg_time(n_calls=100, verbose=True)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print(f'\nNumber of rows selected from MV: {selected.row_count}', flush=True)
-   #print_clickhouse_rowset(joined, rows_to_print)
+   print_clickhouse_rowset(selected, rows_to_print)
 
 
 def main():
