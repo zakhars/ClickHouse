@@ -237,7 +237,7 @@ def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join,
       settings=
       {
-         'join_algorithm': 'full_sorting_merge'
+#         'join_algorithm': 'full_sorting_merge'
       })
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}')
    #print_clickhouse_rowset(joined, rows_to_print)
