@@ -75,9 +75,9 @@ def print_clickhouse_rowset(result, num_rows=0):
    print("-" * len(header))
 
    for row in rows[:num_rows]:
+      row_to_print = ''
       for val, type, width in zip(row, types, widths):
          if is_datetime_type(type):
             val = val.isoformat()
-         print(" | ".join(str(val).ljust(width)))
-
-
+         row_to_print += " | ".join(str(val).ljust(width))
+      print(row_to_print)
