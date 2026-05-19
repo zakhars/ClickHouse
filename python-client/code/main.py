@@ -3,60 +3,29 @@ from pathlib import Path
 import random
 import clickhouse_connect
 import traceback
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 from utils import avg_time, trace, print_clickhouse_rowset
 import sql
-
-CONFIG = {
-   'host': 'clickhouse-marketdata',
-   'port': 8123,
-   'username': 'mduser',
-   'password': 'mdpassword',
-   'database': 'marketdata'
-}
-
-NUM_QUOTES = 10000000
-NUM_TRADES = 100000
-INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
-REGENERATE_DATA = False
-
-BASE_DATA = {
-   'CME':   [('F.EPZ26',      100),
-             ('F.ENQH26',     200),
-             ('F.ENQM27',     230),
-             ('F.EPU27',      150)
-             ],
-   'NYMEX': [('C.BP6H27110',  10),
-             ('P.EU6Z27150',  25),
-             ('C.EU6Z261000', 15)
-             ],
-   'LME':   [('F.SDAS3H28',   20),
-             ('F.SDAS9H27',   25),
-             ('F.SDAS9H27',   10)]
-}
-
-NS_IN_SEC = 1000000000
-BASE_TS_LOCAL  = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours=-3))).timestamp()) * NS_IN_SEC
-BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours= 5))).timestamp()) * NS_IN_SEC
-
+import config
+from config import NS_IN_SEC
 
 @trace('Connecting to server')
 def connect():
-   client = clickhouse_connect.get_client(**CONFIG)
-   if client.query('SELECT currentDatabase()').result_rows[0][0] != CONFIG['database']:
-      raise Exception(f"Database {CONFIG['database']} should be created during ClickHouse container startup")
+   client = clickhouse_connect.get_client(**config.DB)
+   if client.query('SELECT currentDatabase()').result_rows[0][0] != config.DB['database']:
+      raise Exception(f"Database {config.DB['database']} should be created during ClickHouse container startup")
    return client
 
 
 @trace('Dropping all tables')
 def reset_database(client):
-   client.query(f'TRUNCATE DATABASE {CONFIG['database']}')
+   client.query(f'TRUNCATE DATABASE {config.DB['database']}')
 
 
 @trace('Truncating data')
 def truncate_data(client):
-   tables = client.query(f"SHOW TABLES FROM {CONFIG['database']}").result_rows
+   tables = client.query(f"SHOW TABLES FROM {config.DB['database']}").result_rows
    for table in tables:
       table_name = table[0]
       client.command(f'TRUNCATE TABLE {table_name}')
@@ -82,21 +51,21 @@ def init_schema_from_script_files(client, scripts_path):
 @trace('Inserting quotes')
 @avg_time(n_calls=1, verbose=True)
 def insert_quotes(client, chunk_size=1):
-   if chunk_size > NUM_QUOTES: chunk_size = NUM_QUOTES
-   sources = list(BASE_DATA.keys())
-   local_ts = BASE_TS_LOCAL
-   exch_ts  = BASE_TS_EXCH
+   if chunk_size > config.NUM_QUOTES: chunk_size = config.NUM_QUOTES
+   sources = list(config.BASE_DATA.keys())
+   local_ts = config.BASE_TS_LOCAL
+   exch_ts  = config.BASE_TS_EXCH
    min_ts = local_ts # save earliest timestamp
    seqno = 1
    quotes = []
-   for i in range(NUM_QUOTES):
+   for i in range(config.NUM_QUOTES):
       source = random.choice(sources)
-      contract_idx = random.randint(0, len(BASE_DATA[source])-1) # pick arbitrary symbol/price
-      symbol = BASE_DATA[source][contract_idx][0]
+      contract_idx = random.randint(0, len(config.BASE_DATA[source])-1) # pick arbitrary symbol/price
+      symbol = config.BASE_DATA[source][contract_idx][0]
       bid_qty = random.randint(10, 1000)
       ask_qty = random.randint(10, 1000)
 
-      base_price = BASE_DATA[source][contract_idx][1]
+      base_price = config.BASE_DATA[source][contract_idx][1]
       price_deviation = random.uniform(-0.01, 0.01)
       middle_price = base_price * (1 + price_deviation)
       bid_ask_spread = middle_price * random.uniform(0.001, 0.010)
@@ -123,8 +92,8 @@ def insert_quotes(client, chunk_size=1):
       begin += chunk_size
       end += chunk_size
 
-   if rows_inserted != NUM_QUOTES:
-      raise Exception(f'Wrong number of rows inserted into md_quotes. Expected {NUM_QUOTES}, got {rows_inserted}')
+   if rows_inserted != config.NUM_QUOTES:
+      raise Exception(f'Wrong number of rows inserted into md_quotes. Expected {config.NUM_QUOTES}, got {rows_inserted}')
 
    min_dt = datetime.fromtimestamp(min_ts   // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
    max_dt = datetime.fromtimestamp(local_ts // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
@@ -136,14 +105,14 @@ def insert_quotes(client, chunk_size=1):
 @trace('Inserting trades')
 @avg_time(n_calls=1, verbose=True)
 def insert_trades(client, quotes, chunk_size=1):
-   if chunk_size > NUM_TRADES: chunk_size = NUM_TRADES
+   if chunk_size > config.NUM_TRADES: chunk_size = config.NUM_TRADES
 
    available_quotes = [i for i in range(len(quotes))]
    sides = [0, 1, 2]
    weights = [0.02, 0.44, 0.44] # undef is less frequent, than bid and ask
    seqno = 1
    trades = []
-   for i in range(NUM_TRADES):
+   for i in range(config.NUM_TRADES):
       index = random.randrange(len(available_quotes))
       quote_idx = available_quotes[index]
       quote = quotes[quote_idx]
@@ -187,8 +156,8 @@ def insert_trades(client, quotes, chunk_size=1):
       begin += chunk_size
       end += chunk_size
 
-   if rows_inserted != NUM_TRADES:
-      raise Exception(f'Wrong number of rows inserted into md_trades. Expected {NUM_QUOTES}, got {rows_inserted}')
+   if rows_inserted != config.NUM_TRADES:
+      raise Exception(f'Wrong number of rows inserted into md_trades. Expected {config.NUM_QUOTES}, got {rows_inserted}')
 
 
 @trace('Checking data')
@@ -219,13 +188,13 @@ def check_data(client, verbose=False):
 
    quotes_row_count = client.query('SELECT COUNT(*) FROM md_quotes')
    trades_row_count = client.query('SELECT COUNT(*) FROM md_trades')
-   if quotes_row_count.result_rows[0][0] != NUM_QUOTES or trades_row_count.result_rows[0][0] != NUM_TRADES:
+   if quotes_row_count.result_rows[0][0] != config.NUM_QUOTES or trades_row_count.result_rows[0][0] != config.NUM_TRADES:
       raise Exception('Wrong number of quotes or trades')
 
 
 @trace('Checking DB size')
 def get_physical_size(client):
-   dbname = CONFIG['database']
+   dbname = config.DB['database']
    sizes = client.query(
       f"SELECT table, sum(bytes_on_disk) AS size_on_disk FROM system.parts WHERE database='{dbname}' GROUP BY table")
    print_clickhouse_rowset(sizes)
@@ -260,12 +229,12 @@ def main():
    client = None
    try:
       client = connect()
-      if REGENERATE_DATA:
+      if config.REGENERATE_DATA:
          reset_database(client) # Drop tables to be able to re-create them each time with custom settings
          init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
          truncate_data(client)
-         quotes = insert_quotes(client, INSERT_CHUNK_SIZE)
-         insert_trades(client, quotes, INSERT_CHUNK_SIZE)
+         quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
+         insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
          check_data(client, True)
          get_physical_size(client)
       create_mv(client, sql.sc_materized_view)

@@ -53,12 +53,16 @@ def trace(msg, enabled=True):
       return wrapper
    return decorator
 
+def is_datetime_type(type_str):
+    return str(type_str).lower() == 'datetime'
+
 
 def print_clickhouse_rowset(result, num_rows=0):
    if num_rows < 0: return
 
    columns = result.column_names
    rows = result.result_rows
+   types = result.column_types
 
    widths = [len(str(col)) for col in columns]
    for row in rows[:10]:
@@ -70,9 +74,10 @@ def print_clickhouse_rowset(result, num_rows=0):
    print(header)
    print("-" * len(header))
 
-   if num_rows > 0:
-      for row in rows[:num_rows]:
-         print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row)))
-   elif num_rows == 0:
-      for row in rows:
-         print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row)))
+   for row in rows[:num_rows]:
+      for val, type, width in zip(row, types, widths):
+         if is_datetime_type(type):
+            val = val.isoformat()
+         print(" | ".join(str(val).ljust(width)))
+
+
