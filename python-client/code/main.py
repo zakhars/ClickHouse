@@ -16,8 +16,8 @@ CONFIG = {
    'database': 'marketdata'
 }
 
-NUM_QUOTES = 10000000
-NUM_TRADES = 100000
+NUM_QUOTES = 1000000
+NUM_TRADES = 10000
 INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
 REGENERATE_DATA = False
 
@@ -234,14 +234,11 @@ def get_physical_size(client):
 @trace('Joining')
 @avg_time(n_calls=10, verbose=True)
 def join_simple(client, rows_to_print=-1):
-   #joined = client.query(sql.q_simple_asof_join, settings=
-   joined = client.query(sql.q_asof_join_memory)#,
-      # settings=
-      # {
-      #    'join_algorithm': 'full_sorting_merge'
-      # })
-   #joined = client.query(sql.q_simple_asof_join)
-
+   joined = client.query(sql.q_simple_asof_join,
+      settings=
+      {
+         #'join_algorithm': 'full_sorting_merge'
+      })
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}')
    print_clickhouse_rowset(joined, rows_to_print)
 
@@ -258,7 +255,6 @@ def main():
          insert_trades(client, quotes, chunk_size=INSERT_CHUNK_SIZE)
          check_data(client, True)
          get_physical_size(client)
-      init_schema(client, [sql.sc_create_table_md_trades_memory])
       join_simple(client=client, rows_to_print=3)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
