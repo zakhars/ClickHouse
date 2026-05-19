@@ -237,7 +237,7 @@ def create_mv(client, sc_script):
 
 
 @trace('Joining')
-@avg_time(n_calls=100, verbose=True)
+@avg_time(n_calls=10, verbose=True)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join
       # ,settings=
@@ -249,7 +249,7 @@ def join_simple(client, rows_to_print=-1):
    print_clickhouse_rowset(joined, rows_to_print)
 
 @trace('Selecting from MV')
-@avg_time(n_calls=100, verbose=True)
+@avg_time(n_calls=10, verbose=True)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print(f'\nNumber of rows selected from MV: {selected.row_count}', flush=True)

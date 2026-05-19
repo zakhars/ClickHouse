@@ -44,7 +44,7 @@ sc_materized_view = """
    ENGINE = MergeTree
    ORDER BY (symbol, trade_local_ts)
    SETTINGS index_granularity = 1024
-   POPULATE  -- Fill immediately
+   POPULATE  -- Fill on creation
    AS
    SELECT 
          t.symbol,
@@ -56,8 +56,8 @@ sc_materized_view = """
          round(q.bid_price, 5) as bid_price,
          round(q.ask_price, 5) as ask_price,
          round(t.price - q.bid_price, 5) as spread_to_bid,
-         round(q.ask_price - t.price, 5) as spread_to_ask
---         dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
+         round(q.ask_price - t.price, 5) as spread_to_ask,
+         dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
    FROM md_trades AS t
    ASOF LEFT JOIN md_quotes AS q
        ON t.symbol = q.symbol 
@@ -76,8 +76,8 @@ q_simple_asof_join = """
          round(q.bid_price, 5) as bid_price,
          round(q.ask_price, 5) as ask_price,
          round(t.price - q.bid_price, 5) as spread_to_bid,
-         round(q.ask_price - t.price, 5) as spread_to_ask
---         dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
+         round(q.ask_price - t.price, 5) as spread_to_ask,
+         dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
      FROM md_trades AS t
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
@@ -89,5 +89,5 @@ q_simple_asof_join = """
 
 q_select_from_mv = """
    SELECT * mv_trade_quote_asof_join
-   WHERE trade_local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
+   --WHERE trade_local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
 """
