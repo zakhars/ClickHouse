@@ -54,7 +54,7 @@ def trace(msg, enabled=True):
    return decorator
 
 def is_datetime_type(type_str):
-    return str(type_str).lower() == 'datetime'
+    return 'DateTime64' in str(type_str)
 
 
 def print_clickhouse_rowset(result, num_rows=0):
@@ -79,6 +79,6 @@ def print_clickhouse_rowset(result, num_rows=0):
       for val, type, width in zip(row, types, widths):
          if is_datetime_type(type):
             val = val.isoformat()
-         formatted_values.append(str(val).ljust(width) + f'___{type}')
+         formatted_values.append(str(val).ljust(width))
       row_to_print = " | ".join(formatted_values)
       print(row_to_print)
