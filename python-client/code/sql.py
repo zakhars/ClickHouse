@@ -40,7 +40,7 @@ sc_create_table_md_trades = """
 """
 
 sc_materized_view = """
-   CREATE MATERIALIZED VIEW mv_trade_quote_asof_join
+   CREATE MATERIALIZED VIEW IF NOT EXISTS mv_trade_quote_asof_join
    ENGINE = MergeTree
    ORDER BY (symbol, trade_local_ts)
    SETTINGS index_granularity = 1024

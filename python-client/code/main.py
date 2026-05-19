@@ -231,16 +231,28 @@ def get_physical_size(client):
    print_clickhouse_rowset(sizes)
 
 
+@trace('Creating materialized view')
+def create_mv(client, sc_script):
+   client.command(sc_script)
+
+
 @trace('Joining')
 @avg_time(n_calls=100, verbose=True)
 def join_simple(client, rows_to_print=-1):
    joined = client.query(sql.q_simple_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'full_sorting_merge'
-      }
+      # ,settings=
+      # {
+      #    'join_algorithm': 'full_sorting_merge'
+      # }
       )
    print(f'\nNumber of rows returned by JOIN: {joined.row_count}', flush=True)
+   #print_clickhouse_rowset(joined, rows_to_print)
+
+@trace('Selecting from MV')
+@avg_time(n_calls=100, verbose=True)
+def select_from_mv(client, rows_to_print=-1):
+   selected = client.query(sql.q_select_from_mv)
+   print(f'\nNumber of rows selected from MV: {selected.row_count}', flush=True)
    #print_clickhouse_rowset(joined, rows_to_print)
 
 
@@ -252,11 +264,13 @@ def main():
          reset_database(client) # Drop tables to be able to re-create them each time with custom settings
          init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
          truncate_data(client)
-         quotes = insert_quotes(client, chunk_size=INSERT_CHUNK_SIZE)
-         insert_trades(client, quotes, chunk_size=INSERT_CHUNK_SIZE)
+         quotes = insert_quotes(client, INSERT_CHUNK_SIZE)
+         insert_trades(client, quotes, INSERT_CHUNK_SIZE)
          check_data(client, True)
          get_physical_size(client)
+      create_mv(client, sql.sc_materized_view)
       join_simple(client=client, rows_to_print=3)
+      select_from_mv(client, rows_to_print=3)
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
       traceback.print_exc()
