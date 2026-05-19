@@ -88,7 +88,6 @@ q_simple_asof_join = """
 
 
 q_select_from_mv = """
-   SELECT * 
-   FROM trade_quote_asof_mv
+   SELECT * mv_trade_quote_asof_join
    WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
 """
