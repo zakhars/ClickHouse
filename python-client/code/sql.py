@@ -95,7 +95,9 @@ q_asof_join = """
 --     PREWHERE 
 --     t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 --     AND 
-       symbol = 'F.EPZ26'
+--     symbol = 'F.EPZ26'
+--     AND 
+       dateDiff('microsecond', q.local_ts, t.local_ts) > 50
 """
 
 
