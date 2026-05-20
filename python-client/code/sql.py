@@ -90,14 +90,20 @@ q_asof_join = """
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts
 --     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
-     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     PREWHERE 
+         --t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+         --AND 
+         symbol = 'F.EPZ26'
 """
 
 
 q_select_from_mv = """
    SELECT * 
    FROM mv_trade_quote_asof_join
-   WHERE trade_local_ts BETWEEN '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
+   WHERE 
+       --trade_local_ts BETWEEN '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
+       --AND 
+       symbol = 'F.EPZ26'
 """
 
 q_select_from_quotes = """
