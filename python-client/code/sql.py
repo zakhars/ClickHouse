@@ -16,7 +16,7 @@ sc_create_table_md_quotes = """
    --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
-      index_granularity = 1024;
+      index_granularity = 8192;
 """
 
 sc_create_table_md_trades = """
@@ -36,14 +36,14 @@ sc_create_table_md_trades = """
    --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
-      index_granularity = 1024;
+      index_granularity = 8192;
 """
 
 sc_materized_view = """
    CREATE MATERIALIZED VIEW IF NOT EXISTS mv_trade_quote_asof_join
    ENGINE = MergeTree
    ORDER BY (symbol, trade_local_ts)
-   SETTINGS index_granularity = 1024
+   SETTINGS index_granularity = 8192
    POPULATE  -- Fill on creation
    AS
    SELECT 
