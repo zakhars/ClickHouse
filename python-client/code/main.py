@@ -192,14 +192,33 @@ def create_mv(client, sc_script):
    client.command(sc_script)
 
 
-@trace('Joining')
+@trace('Joining with default algorithm')
 @avg_time(n_calls=10, verbose=True)
-def join_simple(client, rows_to_print=-1):
+def join_default(client, rows_to_print=-1):
+   joined = client.query(sql.q_asof_join)
+   print_clickhouse_rowset(joined, rows_to_print)
+
+
+@trace('Joining with "hash" algorithm')
+@avg_time(n_calls=10, verbose=True)
+def join_hash(client, rows_to_print=-1):
    joined = client.query(sql.q_asof_join
-      # ,settings=
-      # {
-      #    'join_algorithm': 'full_sorting_merge'
-      # }
+      ,settings=
+      {
+         'join_algorithm': 'hash'
+      }
+      )
+   print_clickhouse_rowset(joined, rows_to_print)
+
+
+@trace('Joining with "full sorting merge" algorithm')
+@avg_time(n_calls=10, verbose=True)
+def join_full_sorting_merge(client, rows_to_print=-1):
+   joined = client.query(sql.q_asof_join
+      ,settings=
+      {
+         'join_algorithm': 'full_sorting_merge'
+      }
       )
    print_clickhouse_rowset(joined, rows_to_print)
 
@@ -208,7 +227,6 @@ def join_simple(client, rows_to_print=-1):
 @avg_time(n_calls=10, verbose=True)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
-   print(f'\nNumber of rows selected from MV: {selected.row_count}', flush=True)
    print_clickhouse_rowset(selected, rows_to_print)
 
 
@@ -227,8 +245,13 @@ def main():
          get_physical_size(client)
 
       create_mv(client, sql.sc_materized_view)
-      join_simple(client=client, rows_to_print=-1)
+
+      print(f'{"="*20} Benchmarks start {"="*40}')
+      join_default(client=client, rows_to_print=-1)
+      join_hash(client=client, rows_to_print=-1)
+      join_full_sorting_merge(client=client, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
+      print(f'{"="*20} Benchmarks stop  {"="*40}')
 
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
