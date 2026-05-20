@@ -64,7 +64,7 @@ sc_materized_view = """
        AND t.local_ts >= q.local_ts
 """
 
-q_simple_asof_join = """
+q_asof_join = """
      --EXPLAIN indexes = 1
      SELECT 
          t.symbol,
@@ -92,3 +92,27 @@ q_select_from_mv = """
    FROM mv_trade_quote_asof_join
    WHERE trade_local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
 """
+
+q_select_from_quotes = """
+   with ranked as (
+   select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   from md_quotes order by local_ts asc limit 5
+   union all
+   select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   from md_quotes order by local_ts desc limit 5)
+   select * from ranked order by local_ts
+"""
+
+q_select_from_trades = """
+   with ranked as (
+   select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   from md_trades order by local_ts asc limit 5
+   union all
+   select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   from md_trades order by local_ts desc limit 5)
+   select * from ranked order by local_ts
+"""
+
+q_select_quotes_count = 'SELECT COUNT(*) FROM md_quotes'
+
+q_select_trades_count = 'SELECT COUNT(*) FROM md_trades'

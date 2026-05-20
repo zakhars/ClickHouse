@@ -163,32 +163,19 @@ def insert_trades(client, quotes, chunk_size=1):
 @trace('Checking data')
 def check_data(client, verbose=False):
    if verbose:
-      quotes = client.query("""
-         with ranked as (
-         select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_quotes order by local_ts asc limit 5
-         union all
-         select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_quotes order by local_ts desc limit 5)
-         select * from ranked order by local_ts
-      """)
       print('\nQuotes')
+      quotes = client.query(sql.q_select_from_quotes)
       print_clickhouse_rowset(quotes, 10)
-      trades = client.query("""
-         with ranked as (
-         select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_trades order by local_ts asc limit 5
-         union all
-         select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-         from md_trades order by local_ts desc limit 5)
-         select * from ranked order by local_ts
-      """)
+
       print('\nTrades')
+      trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
 
-   quotes_row_count = client.query('SELECT COUNT(*) FROM md_quotes')
-   trades_row_count = client.query('SELECT COUNT(*) FROM md_trades')
-   if quotes_row_count.result_rows[0][0] != config.NUM_QUOTES or trades_row_count.result_rows[0][0] != config.NUM_TRADES:
+   quotes_row_count = client.query(sql.q_select_quotes_count).result_rows[0][0]
+   trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
+
+   if (quotes_row_count != config.NUM_QUOTES or
+       trades_row_count != config.NUM_TRADES):
       raise Exception('Wrong number of quotes or trades')
 
 
@@ -200,7 +187,7 @@ def get_physical_size(client):
    print_clickhouse_rowset(sizes)
 
 
-@trace('Creating materialized view')
+@trace('Creating MV')
 def create_mv(client, sc_script):
    client.command(sc_script)
 
@@ -208,14 +195,14 @@ def create_mv(client, sc_script):
 @trace('Joining')
 @avg_time(n_calls=10, verbose=True)
 def join_simple(client, rows_to_print=-1):
-   joined = client.query(sql.q_simple_asof_join
+   joined = client.query(sql.q_asof_join
       # ,settings=
       # {
       #    'join_algorithm': 'full_sorting_merge'
       # }
       )
-   print(f'\nNumber of rows returned by JOIN: {joined.row_count}', flush=True)
    print_clickhouse_rowset(joined, rows_to_print)
+
 
 @trace('Selecting from MV')
 @avg_time(n_calls=10, verbose=True)
@@ -229,6 +216,7 @@ def main():
    client = None
    try:
       client = connect()
+
       if config.REGENERATE_DATA:
          reset_database(client) # Drop tables to be able to re-create them each time with custom settings
          init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
@@ -237,9 +225,11 @@ def main():
          insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
          check_data(client, True)
          get_physical_size(client)
+
       create_mv(client, sql.sc_materized_view)
       join_simple(client=client, rows_to_print=3)
       select_from_mv(client, rows_to_print=3)
+
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
       traceback.print_exc()
