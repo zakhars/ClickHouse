@@ -227,8 +227,8 @@ def main():
          get_physical_size(client)
 
       create_mv(client, sql.sc_materized_view)
-      join_simple(client=client, rows_to_print=3)
-      select_from_mv(client, rows_to_print=3)
+      join_simple(client=client, rows_to_print=-1)
+      select_from_mv(client, rows_to_print=-1)
 
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
