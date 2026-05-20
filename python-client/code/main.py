@@ -236,18 +236,6 @@ def join_parallel_hash(client, rows_to_print=-1):
    print_clickhouse_rowset(joined, rows_to_print)
 
 
-@trace('Joining with "direct" algorithm')
-@avg_time(n_calls=10, verbose=True)
-def join_hash(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'direct'
-      }
-      )
-   print_clickhouse_rowset(joined, rows_to_print)
-
-
 @trace('Joining with "full_sorting_merge" algorithm')
 @avg_time(n_calls=10, verbose=True)
 def join_full_sorting_merge(client, rows_to_print=-1):
@@ -292,7 +280,9 @@ def main():
 
       print(f'{"="*20} Benchmarks start {"="*40}', flush=True)
       join_default(client=client, rows_to_print=-1)
+      join_auto(client=client, rows_to_print=-1)
       join_hash(client=client, rows_to_print=-1)
+      join_parallel_hash(client=client, rows_to_print=-1)
       join_full_sorting_merge(client=client, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
       print(f'{"="*20} Benchmarks stop  {"="*40}', flush=True)
