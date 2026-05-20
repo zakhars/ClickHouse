@@ -91,9 +91,14 @@ q_asof_join = """
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts
---     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
-     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
---     AND symbol = 'F.EPZ26'
+--     WHERE 
+--       t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
+--     AND 
+--       symbol = 'F.EPZ26'
+     PREWHERE 
+--     t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+--     AND 
+       symbol = 'F.EPZ26'
 """
 
 
