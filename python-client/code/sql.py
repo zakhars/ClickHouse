@@ -64,6 +64,9 @@ sc_materized_view = """
        AND t.local_ts >= q.local_ts
 """
 
+# SELECT name, rows, active, level, modification_time FROM system.parts
+# WHERE database = 'marketdata' ORDER BY active DESC, name;
+
 q_complete_partitioning_trades = "OPTIMIZE TABLE md_trades FINAL"
 
 q_complete_partitioning_quotes = "OPTIMIZE TABLE md_quotes FINAL"
