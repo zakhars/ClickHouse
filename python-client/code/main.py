@@ -185,7 +185,12 @@ def get_physical_size(client):
    dbname = config.DB['database']
    sizes = client.query(
       f"SELECT table, sum(bytes_on_disk) AS size_on_disk FROM system.parts WHERE database='{dbname}' GROUP BY table")
-   print_clickhouse_rowset(sizes)
+   print_clickhouse_rowset(sizes, num_rows=100)
+
+
+@trace('Dropping MV')
+def drop_mv(client, sc_script):
+   client.command(sc_script)
 
 
 @trace('Creating MV')
@@ -193,58 +198,12 @@ def create_mv(client, sc_script):
    client.command(sc_script)
 
 
-@trace('Joining with default algorithm')
+@trace('Joining')
 @avg_time(n_calls=10, verbose=True)
-def join_default(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join)
-   print_clickhouse_rowset(joined, rows_to_print)
-
-
-@trace('Joining with auto algorithm')
-@avg_time(n_calls=10, verbose=True)
-def join_auto(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'auto'
-      }
-      )
-   print_clickhouse_rowset(joined, rows_to_print)
-
-
-@trace('Joining with "hash" algorithm')
-@avg_time(n_calls=10, verbose=True)
-def join_hash(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'hash'
-      }
-      )
-   print_clickhouse_rowset(joined, rows_to_print)
-
-
-@trace('Joining with "parallel_hash" algorithm')
-@avg_time(n_calls=10, verbose=True)
-def join_parallel_hash(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'parallel_hash'
-      }
-      )
-   print_clickhouse_rowset(joined, rows_to_print)
-
-
-@trace('Joining with "full_sorting_merge" algorithm')
-@avg_time(n_calls=10, verbose=True)
-def join_full_sorting_merge(client, rows_to_print=-1):
-   joined = client.query(sql.q_asof_join
-      ,settings=
-      {
-         'join_algorithm': 'full_sorting_merge'
-      }
-      )
+def join_asof(client, settings='', filter='', rows_to_print=-1):
+   print(f'Join settings: {settings}')
+   print(f'Filter: {filter}')
+   joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
 
 
@@ -254,6 +213,29 @@ def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print_clickhouse_rowset(selected, rows_to_print)
 
+def generate_dataset(client, engine, partition, orderby, primarykey, settings):
+   reset_database(client)  # Drop tables to be able to re-create them with custom settings
+
+   table_creation_settings = '\n'.join([engine, partition, orderby, primarykey, settings])
+
+   patched_sc_scripts = [
+      sql.sc_create_table_md_quotes + table_creation_settings,
+      sql.sc_create_table_md_trades + table_creation_settings,
+   ]
+
+   init_schema(client, patched_sc_scripts)
+   truncate_data(client)
+   quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
+   insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
+   check_data(client, True)
+   get_physical_size(client)
+
+   print("Complete partitioning after inserting data", flush=True)
+   client.command(sql.q_complete_partitioning_quotes)
+   client.command(sql.q_complete_partitioning_trades)
+   print('Wait an additional time after data partitioning', flush=True)
+   time.sleep(10)
+
 
 def main():
    client = None
@@ -261,30 +243,25 @@ def main():
       client = connect()
 
       if config.REGENERATE_DATA:
-         reset_database(client) # Drop tables to be able to re-create them each time with custom settings
-         init_schema(client, [sql.sc_create_table_md_quotes, sql.sc_create_table_md_trades])
-         truncate_data(client)
-         quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
-         insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
-         check_data(client, True)
-         get_physical_size(client)
+         generate_dataset(
+            client,
+            engine=config.ENGINE['merge_tree'],
+            partition=config.PARTITION['none'],
+            orderby=config.ORDERBY['symbol_time'],
+            primarykey=config.PRIMARYKEY['symbol_time'],
+            settings=config.INDEX_GRANULARITY['8192']
+         )
 
-      create_mv(client, sql.sc_materized_view)
-
-      if config.REGENERATE_DATA:
-         print("Complete partitioning after inserting data", flush=True)
-         client.command(sql.q_complete_partitioning_quotes)
-         client.command(sql.q_complete_partitioning_trades)
-         print('Wait an additional minute after data partitioning', flush=True)
-         time.sleep(60)
+      drop_mv(client, sql.sc_drop_mv)
+      create_mv(client, sql.sc_create_mv)
 
       print(f'{"="*20} Benchmarks start {"="*40}', flush=True)
-      join_default(client=client, rows_to_print=-1)
-      join_auto(client=client, rows_to_print=-1)
-      join_hash(client=client, rows_to_print=-1)
-      join_parallel_hash(client=client, rows_to_print=-1)
-      join_full_sorting_merge(client=client, rows_to_print=-1)
+
+      for join_settings in config.JOIN_SETTINGS:
+         join_asof(client=client, join_algo=join_settings, rows_to_print=-1)
+
       select_from_mv(client, rows_to_print=-1)
+
       print(f'{"="*20} Benchmarks stop  {"="*40}', flush=True)
 
    except Exception as e:
