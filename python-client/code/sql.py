@@ -97,7 +97,7 @@ q_asof_join = """
 --     AND 
 --     symbol = 'F.EPZ26'
 --     AND 
-       dateDiff('microsecond', q.local_ts, t.local_ts) > 50
+       q.source = 'CME'
 """
 
 
