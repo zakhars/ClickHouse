@@ -200,6 +200,18 @@ def join_default(client, rows_to_print=-1):
    print_clickhouse_rowset(joined, rows_to_print)
 
 
+@trace('Joining with auto algorithm')
+@avg_time(n_calls=10, verbose=True)
+def join_auto(client, rows_to_print=-1):
+   joined = client.query(sql.q_asof_join
+      ,settings=
+      {
+         'join_algorithm': 'auto'
+      }
+      )
+   print_clickhouse_rowset(joined, rows_to_print)
+
+
 @trace('Joining with "hash" algorithm')
 @avg_time(n_calls=10, verbose=True)
 def join_hash(client, rows_to_print=-1):
@@ -212,7 +224,31 @@ def join_hash(client, rows_to_print=-1):
    print_clickhouse_rowset(joined, rows_to_print)
 
 
-@trace('Joining with "full sorting merge" algorithm')
+@trace('Joining with "parallel_hash" algorithm')
+@avg_time(n_calls=10, verbose=True)
+def join_parallel_hash(client, rows_to_print=-1):
+   joined = client.query(sql.q_asof_join
+      ,settings=
+      {
+         'join_algorithm': 'parallel_hash'
+      }
+      )
+   print_clickhouse_rowset(joined, rows_to_print)
+
+
+@trace('Joining with "direct" algorithm')
+@avg_time(n_calls=10, verbose=True)
+def join_hash(client, rows_to_print=-1):
+   joined = client.query(sql.q_asof_join
+      ,settings=
+      {
+         'join_algorithm': 'direct'
+      }
+      )
+   print_clickhouse_rowset(joined, rows_to_print)
+
+
+@trace('Joining with "full_sorting_merge" algorithm')
 @avg_time(n_calls=10, verbose=True)
 def join_full_sorting_merge(client, rows_to_print=-1):
    joined = client.query(sql.q_asof_join

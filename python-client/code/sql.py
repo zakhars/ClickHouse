@@ -93,7 +93,7 @@ q_asof_join = """
          AND t.local_ts >= q.local_ts
 --     WHERE 
      PREWHERE 
-     q.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 --     AND 
 --     symbol = 'F.EPZ26'
 --     AND 
