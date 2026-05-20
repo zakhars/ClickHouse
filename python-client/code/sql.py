@@ -17,6 +17,7 @@ sc_create_table_md_quotes = """
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
+--      index_granularity = 1024;
 """
 
 sc_create_table_md_trades = """
@@ -37,6 +38,7 @@ sc_create_table_md_trades = """
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
+--      index_granularity = 1024;
 """
 
 sc_materized_view = """
