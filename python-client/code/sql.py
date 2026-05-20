@@ -84,40 +84,58 @@ q_asof_join = """
          round(q.ask_price, 5) as ask_price,
          round(t.price - q.bid_price, 5) as spread_to_bid,
          round(q.ask_price - t.price, 5) as spread_to_ask
-         -- dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
+         dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
      FROM md_trades AS t
      ASOF LEFT JOIN md_quotes AS q
          ON t.symbol = q.symbol 
          AND t.local_ts >= q.local_ts
 --     WHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'   
---     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     PREWHERE t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
 """
 
 
 q_select_from_mv = """
    SELECT * 
    FROM mv_trade_quote_asof_join
---   WHERE trade_local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
+   WHERE trade_local_ts BETWEEN '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999' 
 """
 
 q_select_from_quotes = """
-   with ranked as (
-   select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-   from md_quotes order by local_ts asc limit 5
-   union all
-   select bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-   from md_quotes order by local_ts desc limit 5)
-   select * from ranked order by local_ts
+   WITH ranked AS (
+   SELECT bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, 
+          toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   FROM md_quotes 
+   ORDER BY local_ts ASC 
+   LIMIT 5
+
+   UNION ALL
+
+   SELECT bid_qty, ask_qty, round(bid_price, 5) as bid_price, round(ask_price, 5) as ask_price, 
+          toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
+   FROM md_quotes 
+   ORDER BY local_ts DESC 
+   LIMIT 5)
+
+   SELECT * FROM ranked ORDER BY local_ts
 """
 
 q_select_from_trades = """
-   with ranked as (
-   select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-   from md_trades order by local_ts asc limit 5
-   union all
-   select qty, side, round(price, 5) as price, toString(local_ts) as local_ts, toString(exch_ts) as exch_ts, symbol, source, seqno
-   from md_trades order by local_ts desc limit 5)
-   select * from ranked order by local_ts
+   WITH ranked AS (
+   SELECT qty, side, round(price, 5) as price, toString(local_ts) as local_ts, 
+         toString(exch_ts) as exch_ts, symbol, source, seqno
+   FROM md_trades 
+   ORDER BY local_ts ASC 
+   LIMIT 5
+   
+   UNION ALL
+   
+   SELECT qty, side, round(price, 5) as price, toString(local_ts) as local_ts, 
+          toString(exch_ts) as exch_ts, symbol, source, seqno
+   FROM md_trades 
+   ORDER BY local_ts DESC 
+   LIMIT 5)
+   
+   SELECT * FROM ranked ORDER BY local_ts
 """
 
 q_select_quotes_count = 'SELECT COUNT(*) FROM md_quotes'
