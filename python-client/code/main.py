@@ -258,7 +258,7 @@ def main():
       print(f'{"="*20} Benchmarks start {"="*40}', flush=True)
 
       for join_settings in config.JOIN_SETTINGS:
-         join_asof(client=client, join_algo=join_settings, rows_to_print=-1)
+         join_asof(client=client, settings=join_settings, filter=config.FILTER['none'], rows_to_print=-1)
 
       select_from_mv(client, rows_to_print=-1)
 

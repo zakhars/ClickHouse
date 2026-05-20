@@ -42,19 +42,20 @@ JOIN_SETTINGS = [
    {'join_algorithm': 'full_sorting_merge'}
 ]
 
-DATE_FILTER = "between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'"
-SYMBOL_FILTER = "='F.ENQM27'"
-SRC_FILTER = "='CME'"
+DATES = "between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'"
+SYMBOLS = "='F.ENQM27'"
+SOURCES = "='CME'"
 
-FILTERS = {
-   'where_date_trade'    : f"WHERE t.local_ts {DATE_FILTER}",
-   'where_date_quote'    : f"WHERE q.local_ts {DATE_FILTER}",
-   'where_date_symbol'   : f"WHERE t.local_ts {DATE_FILTER} and t.symbol {SYMBOL_FILTER}",
-   'where_src'           : f"WHERE t.src {SRC_FILTER}",
-   'prewhere_date_trade' : f"PREWHERE t.local_ts {DATE_FILTER}",
-   'prewhere_date_quote' : f"PREWHERE q.local_ts {DATE_FILTER}",
-   'prewhere_date_symbol': f"PREWHERE t.local_ts {DATE_FILTER} and t.symbol {SYMBOL_FILTER}",
-   'prewhere_src'        : f"PREWHERE t.src {SRC_FILTER}"
+FILTER = {
+   'none'                : '',
+   'where_date_trade'    : f"WHERE t.local_ts {DATES}",
+   'where_date_quote'    : f"WHERE q.local_ts {DATES}",
+   'where_date_symbol'   : f"WHERE t.local_ts {DATES} and t.symbol {SYMBOLS}",
+   'where_src'           : f"WHERE t.src {SOURCES}",
+   'prewhere_date_trade' : f"PREWHERE t.local_ts {DATES}",
+   'prewhere_date_quote' : f"PREWHERE q.local_ts {DATES}",
+   'prewhere_date_symbol': f"PREWHERE t.local_ts {DATES} and t.symbol {SYMBOLS}",
+   'prewhere_src'        : f"PREWHERE t.src {SOURCES}"
 }
 
 # Table definition order
@@ -66,7 +67,7 @@ FILTERS = {
 #  PRIMARY KEY (symbol, local_ts)
 #  SETTINGS index_granularity = 8192;
 
-ENGINES = {
+ENGINE = {
    'merge_tree': 'ENGINE = MergeTree'
 }
 
