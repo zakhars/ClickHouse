@@ -13,7 +13,7 @@ sc_create_table_md_quotes = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   PARTITION BY toYYYYMMDD(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
@@ -34,7 +34,7 @@ sc_create_table_md_trades = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   PARTITION BY toYYYYMMDD(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
@@ -93,11 +93,11 @@ q_asof_join = """
          AND t.local_ts >= q.local_ts
      WHERE 
 --     PREWHERE 
---     t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     t.local_ts between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'
+     AND 
+     symbol = 'F.EPZ26'
 --     AND 
---     symbol = 'F.EPZ26'
---     AND 
-       q.source = 'CME'
+--     q.source = 'CME'
 """
 
 
