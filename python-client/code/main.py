@@ -1,4 +1,5 @@
 import sys
+import time
 from pathlib import Path
 import random
 import clickhouse_connect
@@ -246,12 +247,19 @@ def main():
 
       create_mv(client, sql.sc_materized_view)
 
-      print(f'{"="*20} Benchmarks start {"="*40}')
+      if config.REGENERATE_DATA:
+         print("Complete partitioning after inserting data", flush=True)
+         client.command(sql.q_complete_partitioning_quotes)
+         client.command(sql.q_complete_partitioning_trades)
+         print('Wait an additional minute after data partitioning', flush=True)
+         time.sleep(60)
+
+      print(f'{"="*20} Benchmarks start {"="*40}', flush=True)
       join_default(client=client, rows_to_print=-1)
       join_hash(client=client, rows_to_print=-1)
       join_full_sorting_merge(client=client, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
-      print(f'{"="*20} Benchmarks stop  {"="*40}')
+      print(f'{"="*20} Benchmarks stop  {"="*40}', flush=True)
 
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)

@@ -13,7 +13,7 @@ sc_create_table_md_quotes = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   PARTITION BY toYYYYMMDD(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 1024;
@@ -33,7 +33,7 @@ sc_create_table_md_trades = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   PARTITION BY toYYYYMMDD(local_ts)
+   --PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 1024;
@@ -63,6 +63,10 @@ sc_materized_view = """
        ON t.symbol = q.symbol 
        AND t.local_ts >= q.local_ts
 """
+
+q_complete_partitioning_trades = "OPTIMIZE TABLE md_trades FINAL"
+
+q_complete_partitioning_quotes = "OPTIMIZE TABLE md_quotes FINAL"
 
 q_asof_join = """
      --EXPLAIN indexes = 1
