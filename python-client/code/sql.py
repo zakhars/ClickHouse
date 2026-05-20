@@ -13,7 +13,7 @@ sc_create_table_md_quotes = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   --PARTITION BY toYYYYMMDD(local_ts)
+   PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
@@ -33,7 +33,7 @@ sc_create_table_md_trades = """
    )
    ENGINE = MergeTree
    --PARTITION BY toYearWeek(local_ts)
-   --PARTITION BY toYYYYMMDD(local_ts)
+   PARTITION BY toYYYYMMDD(local_ts)
    ORDER BY (symbol, local_ts)
    SETTINGS 
       index_granularity = 8192;
