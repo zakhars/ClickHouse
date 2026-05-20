@@ -246,9 +246,9 @@ def main():
          generate_dataset(
             client,
             engine=config.ENGINE['merge_tree'],
-            partition=config.PARTITION['none'],
-            orderby=config.ORDERBY['symbol_time'],
-            primarykey=config.PRIMARYKEY['symbol_time'],
+            partition=config.PARTITION_BY['none'],
+            orderby=config.ORDER_BY['symbol_time'],
+            primarykey=config.PRIMARY_KEY['symbol_time'],
             settings=config.INDEX_GRANULARITY['8192']
          )
 
