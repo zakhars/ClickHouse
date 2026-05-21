@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List
 
 import utils
-from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_script_code, print_colored, color
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_script_code, print_colored, Сolor
 import sql
 import config
 from config import NS_IN_SEC
@@ -272,7 +272,7 @@ def run_test(client, context, verbose=False):
       print_script_code('ASOF JOIN', [sql.q_asof_join])
    join_check_and_warmup(client)
    print('')
-   print_colored(f'Run ASOF JOIN with context:\n{context}', color=color.BLUE)
+   print_colored(f'Run ASOF JOIN with context:\n{context}', color=Сolor.BLUE)
    join_asof(client, context.join_settings, context.filter, -1)
 
 
@@ -329,7 +329,7 @@ def main():
       print(f'========== Benchmarks stop ==========', flush=True)
 
    except Exception as e:
-      print_colored(f'\n\nException occurred in main(): {e}\n', color=color.RED)
+      print_colored(f'\n\nException occurred in main(): {e}\n', color=Сolor.RED)
       traceback.print_exc()
       return -1
    finally:

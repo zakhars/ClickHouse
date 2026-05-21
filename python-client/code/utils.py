@@ -2,7 +2,8 @@ from functools import wraps
 import statistics
 import time
 
-class color:
+
+class Color:
    GREEN  = '\033[92m'
    RED    = '\033[91m'
    YELLOW = '\033[93m'
@@ -11,8 +12,8 @@ class color:
    RESET  = '\033[0m'
 
 
-def print_colored(text, color=color.RESET):
-   print(f'{color}{text}{color.RESET}', flush=True)
+def print_colored(text, color=Color.RESET):
+   print(f'{color}{text}{Color.RESET}', flush=True)
 
 
 # Decorator to measure function execution time and show stats
@@ -35,7 +36,7 @@ def avg_time(n_calls=1, verbose=False, return_stats=False, silent=False):
          std_dev = statistics.stdev(times) if len(times) > 1 else 0
 
          if not silent:
-            print_colored(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)", color=color.YELLOW)
+            print_colored(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)", color=Color.YELLOW)
          if verbose:
             print(f"   Min: {min_time:.6f} s")
             print(f"   Max: {max_time:.6f} s")
@@ -61,17 +62,17 @@ def trace(msg, enabled=True):
       def wrapper(*args, **kwargs):
          if enabled:
             print(f"")
-            print_colored(f"{msg}... ", color=color.WHITE)
+            print_colored(f"{msg}... ", color=Сolor.WHITE)
          result = func(*args, **kwargs)
          if enabled:
-            print_colored(f"Success", color=color.WHITE)
+            print_colored(f"Success", color=Сolor.WHITE)
          return result
       return wrapper
    return decorator
 
 
 def print_test_header(header):
-   print_colored(f'\n\nTEST: {header}', color=color.GREEN)
+   print_colored(f'\n\nTEST: {header}', color=Сolor.GREEN)
 
 
 def print_script_code(prefix, code):
