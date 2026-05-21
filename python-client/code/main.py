@@ -249,10 +249,10 @@ def main():
       client = connect()
 
       # Default settings
-      engine = config.ENGINE['merge_tree'],
-      partition = config.PARTITION_BY['none'],
-      orderby = config.ORDER_BY['symbol_time'],
-      primarykey = config.PRIMARY_KEY['none'],
+      engine = config.ENGINE['merge_tree']
+      partition = config.PARTITION_BY['none']
+      orderby = config.ORDER_BY['symbol_time']
+      primarykey = config.PRIMARY_KEY['none']
       settings = config.INDEX_GRANULARITY['8192']
       filter = config.FILTER['none']
 
