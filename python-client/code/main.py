@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List
 
 import utils
-from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_script_code, print_colored
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_script_code, print_colored, Color
 import sql
 import config
 from config import NS_IN_SEC
@@ -272,7 +272,7 @@ def run_test(client, context, verbose=False):
       print_script_code('ASOF JOIN', [sql.q_asof_join])
    join_check_and_warmup(client)
    print('')
-   print_colored(f'Run ASOF JOIN with context:\n{context}', color=utils.Сolor.BLUE)
+   print_colored(f'Run ASOF JOIN with context:\n{context}', color=Color.BLUE)
    join_asof(client, context.join_settings, context.filter, -1)
 
 
@@ -312,12 +312,14 @@ def main():
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
       # Only "hash" and "full_sorting_merge" left
       print_test_header('Compare JOIN ENGINES')
+      config.REGENERATE_DATA = False
       for join_settings in config.JOIN_SETTINGS.values():
          context.join_settings = join_settings
          run_test(client, context)
 
       # Compare different partitioning settings for "hash" engine
       print_test_header('Compare different PARTITION BY')
+      config.REGENERATE_DATA = True
       context.join_settings = config.JOIN_SETTINGS['hash']
       for partition in config.PARTITION_BY.values():
          context.partition = partition
@@ -329,7 +331,7 @@ def main():
       print(f'========== Benchmarks stop ==========', flush=True)
 
    except Exception as e:
-      print_colored(f'\n\nException occurred in main(): {e}\n', color=utils.Сolor.RED)
+      print_colored(f'\n\nException occurred in main(): {e}\n', color=Color.RED)
       traceback.print_exc()
       return -1
    finally:
