@@ -90,7 +90,7 @@ def print_script_code(prefix, code):
       print('\n')
 
 def print_test_context(what, context, field_to_highlight):
-   print_colored(f'Run {what} with context:\n', color=Color.CYAN)
+   print_colored(f'Run {what} with context:', color=Color.CYAN)
    for param_name, param_value in context.fields().items():
       if param_name == field_to_highlight:
          print_colored(f'{param_name}: {str(param_value)}', color=Color.RED)
