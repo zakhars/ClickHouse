@@ -254,7 +254,7 @@ class test_context:
               f'Join  FILTER: {self.filter}\n'
               f'Join  SETTINGS: {self.join_settings}\n')
 
-def run_test(client, context):
+def run_test(client, context, verbose=False):
    # We may want to skip initial dataset generation
    if config.REGENERATE_DATA:
       generate_dataset(
@@ -264,17 +264,14 @@ def run_test(client, context):
          context.orderby,
          context.primarykey,
          context.granularity)
-      check_data(client, verbose=True)
+      check_data(client, verbose=verbose)
 
    generate_mv(client)
    print_script_code('ASOF JOIN', [sql.q_asof_join])
    join_check_and_warmup(client)
    print('')
-   print_blue(f'Run ASOF JOIN with context: {context}')
+   print_blue(f'Run ASOF JOIN with context:\n{context}')
    join_asof(client, context.join_settings, context.filter, -1)
-   print('')
-   print_blue(f'Selecting from MV:')
-   select_from_mv(client, rows_to_print=-1)
 
 
 def main():
@@ -292,6 +289,17 @@ def main():
          filter = config.FILTER['none'],
          join_settings=config.JOIN_SETTINGS['none']
       )
+
+      # Initial dataset generation with detailed logging
+      generate_dataset(
+         client,
+         context.engine,
+         context.partition,
+         context.orderby,
+         context.primarykey,
+         context.granularity)
+      check_data(client, verbose=True)
+
 
       print(f'========== Benchmarks start ==========', flush=True)
 
@@ -311,6 +319,8 @@ def main():
          context.partition = partition
          run_test(client, context)
 
+      print_test_header('Selecting from MV')
+      select_from_mv(client, rows_to_print=-1)
 
       print(f'========== Benchmarks stop ==========', flush=True)
 

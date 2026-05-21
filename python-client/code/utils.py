@@ -1,8 +1,22 @@
 from functools import wraps
 import statistics
 import time
+from dataclasses import dataclass
 
-def print_green(text):
+@dataclass(frozen=True)
+class color:
+   GREEN  = '\033[92m'
+   RED    = '\033[91m'
+   YELLOW = '\033[93m'
+   BLUE   = '\033[95m'
+   WHITE  = '\033[97m'
+   RESET  = '\033[0m'
+
+
+def print_colored(text, color=color.RESET):
+   print(f'{color}{text}{color.RESET}', flush=True)
+
+def print_green(text, color):
    COLOR_TEST_CASE = '\033[92m'
    COLOR_RESET = '\033[0m'
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
@@ -29,7 +43,7 @@ def print_white(text):
 
 
 def print_test_header(header):
-   print_green(f'\n\nTest: {header}')
+   print_colored(f'\n\nTEST: {header}', color=color.GREEN)
 
 
 # Decorator to measure function execution time and show stats
