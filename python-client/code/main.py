@@ -312,6 +312,15 @@ def main():
          context.join_settings = join_settings
          run_test(client, context, False, 'Join  SETTINGS')
 
+      # Compare filtering with fixed JOIN algorithm "hash"
+      print_test_header('Compare different FILTERING with fixed JOIN algorithm "hash"')
+      config.REGENERATE_DATASET = False
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      for filter in config.FILTER.values():
+         context.filter = filter
+         run_test(client, context, False, 'Join  FILTER')
+
+
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
 
