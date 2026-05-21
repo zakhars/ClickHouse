@@ -72,7 +72,12 @@ def trace(msg, enabled):
 
 
 def print_test_header(header):
-   print_colored(f'\n\nTEST: {header}', color=Color.GREEN)
+   formatted_header = f'TEST: {header}'
+   print('\n', flush=True)
+   print_colored('='*(len(formatted_header)+6), color=Color.GREEN)
+   print_colored(f'|| TEST: {formatted_header} ||', color=Color.GREEN)
+   print_colored('='*(len(formatted_header)+6), color=Color.GREEN)
+   print('')
 
 
 def print_script_code(prefix, code):

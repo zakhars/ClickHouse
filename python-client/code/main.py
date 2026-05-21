@@ -194,15 +194,11 @@ def create_mv(client, sc_script):
    client.command(sc_script)
 
 
-def join_check_and_warmup(client, settings='', filter=''):
-   joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
-   print(f'JOIN returned {len(joined.result_rows)} rows', flush=True)
-
-
 @avg_time(n_calls=10, verbose=config.VERBOSE_STATS, silent=False)
 def join_asof(client, settings='', filter='', rows_to_print=-1):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
+   return len(joined.result_rows)
 
 
 @avg_time(n_calls=10, verbose=config.VERBOSE_STATS, silent=False)
@@ -254,10 +250,9 @@ def run_test(client, context, verbose=False):
    generate_mv(client)
    if config.PRINT_SCRIPT_CODE:
       print_script_code('ASOF JOIN', [sql.q_asof_join])
-   join_check_and_warmup(client)
-   print('')
    print_colored(f'Run ASOF JOIN with context:\n{context}', color=Color.BLUE)
-   join_asof(client, context.join_settings, context.filter, -1)
+   num_rows = join_asof(client, context.join_settings, context.filter, -1)
+   print(f'JOIN returned {num_rows} rows', flush=True)
 
 
 def main():
