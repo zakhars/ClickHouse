@@ -8,7 +8,7 @@ DB = {
    'database': 'marketdata'
 }
 
-REGENERATE_DATA = True
+REGENERATE_DATA = False
 NUM_QUOTES = 50000000
 NUM_TRADES = 500000
 INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer

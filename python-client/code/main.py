@@ -163,17 +163,17 @@ def insert_trades(client, quotes, chunk_size=1):
 
 @trace('Checking data')
 def check_data(client, verbose=False):
+   quotes_row_count = client.query(sql.q_select_quotes_count).result_rows[0][0]
+   trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
+
    if verbose:
-      print('\nQuotes')
+      print(f'\nQuotes inserted {quotes_row_count}. First and last rows:\n')
       quotes = client.query(sql.q_select_from_quotes)
       print_clickhouse_rowset(quotes, 10)
 
-      print('\nTrades')
+      print(f'\nTrades inserted {trades_row_count}. First and last rows:\n')
       trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
-
-   quotes_row_count = client.query(sql.q_select_quotes_count).result_rows[0][0]
-   trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
 
    if (quotes_row_count != config.NUM_QUOTES or
        trades_row_count != config.NUM_TRADES):
@@ -223,12 +223,15 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
       sql.sc_create_table_md_trades + table_creation_settings,
    ]
 
+   print('Table creation scripts:', flush=True)
+   for sc_script in patched_sc_scripts:
+      print(sc_script, flush=True)
+      print('\n')
+
    init_schema(client, patched_sc_scripts)
    truncate_data(client)
    quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
    insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
-   check_data(client, True)
-   get_physical_size(client)
 
    print("Complete partitioning after inserting data", flush=True)
    client.command(sql.q_complete_partitioning_quotes)
@@ -255,14 +258,17 @@ def main():
       drop_mv(client, sql.sc_drop_mv)
       create_mv(client, sql.sc_create_mv)
 
-      print(f'{"="*20} Benchmarks start {"="*40}', flush=True)
+      check_data(client, verbose=True)
+      get_physical_size(client)
+
+      print(f'========== Benchmarks start ==========', flush=True)
 
       for join_settings in config.JOIN_SETTINGS:
          join_asof(client=client, settings=join_settings, filter=config.FILTER['none'], rows_to_print=-1)
 
       select_from_mv(client, rows_to_print=-1)
 
-      print(f'{"="*20} Benchmarks stop  {"="*40}', flush=True)
+      print(f'========== Benchmarks stop ==========', flush=True)
 
    except Exception as e:
       print(f'\n\nException occurred in main(): {e}\n', flush=True)
