@@ -92,10 +92,11 @@ def print_script_code(prefix, code):
 def print_test_context(what, context, field_to_highlight):
    print_colored(f'Run {what} with context:\n', color=Color.CYAN)
    for field in fields(context):
+      value = getattr(context, field.name)
       if field.name == field_to_highlight:
-         print_colored(field.name, color=Color.RED)
+         print_colored(value, color=Color.RED)
       else:
-         print_colored(field.name, color=Color.CYAN)
+         print_colored(value, color=Color.CYAN)
 
 
 def is_datetime_type(type_str):
