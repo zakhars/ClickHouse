@@ -328,6 +328,15 @@ def main():
          context.filter = filter
          run_test(client, context, False, 'Join  FILTER')
 
+      # Compare INDEX GRANULARITY
+      print_test_header('Compare INDEX GRANULARITY')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      context.filter = config.FILTER['none']
+      for granularity in config.INDEX_GRANULARITY.values():
+         context.granularity = granularity
+         run_test(client, context, False, 'Table INDEX GRANULARITY')
+
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
 
