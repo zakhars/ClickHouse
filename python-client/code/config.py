@@ -13,6 +13,9 @@ NUM_QUOTES = 1_000_000
 NUM_TRADES = 10_000
 INSERT_CHUNK_SIZE = 100_000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
 VERBOSE_STATS = False
+SILENT_STATS = False
+ENABLE_TRACE = True
+PRINT_SCRIPT_CODE = True
 
 BASE_DATA = {
    'CME':   [('F.EPZ26',      100),

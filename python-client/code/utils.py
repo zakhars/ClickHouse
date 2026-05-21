@@ -16,38 +16,9 @@ class color:
 def print_colored(text, color=color.RESET):
    print(f'{color}{text}{color.RESET}', flush=True)
 
-def print_green(text, color):
-   COLOR_TEST_CASE = '\033[92m'
-   COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
-def print_red(text):
-   COLOR_TEST_CASE = '\033[91m'
-   COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
-def print_yellow(text):
-   COLOR_TEST_CASE = '\033[93m'
-   COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
-def print_blue(text):
-   COLOR_TEST_CASE = '\033[95m'
-   COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
-def print_white(text):
-   COLOR_TEST_CASE = '\033[97m'
-   COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
-
-def print_test_header(header):
-   print_colored(f'\n\nTEST: {header}', color=color.GREEN)
-
 
 # Decorator to measure function execution time and show stats
-def avg_time(n_calls=10, verbose=True, return_stats=False):
+def avg_time(n_calls=1, verbose=False, return_stats=False, silent=False):
    def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
@@ -65,7 +36,8 @@ def avg_time(n_calls=10, verbose=True, return_stats=False):
          max_time = max(times)
          std_dev = statistics.stdev(times) if len(times) > 1 else 0
 
-         print_yellow(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
+         if not silent:
+            print_colored(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)", color=color.YELLOW)
          if verbose:
             print(f"   Min: {min_time:.6f} s")
             print(f"   Max: {max_time:.6f} s")
@@ -91,13 +63,17 @@ def trace(msg, enabled=True):
       def wrapper(*args, **kwargs):
          if enabled:
             print(f"")
-            print_white(f"{msg}... ")
+            print_colored(f"{msg}... ", color=color.WHITE)
          result = func(*args, **kwargs)
          if enabled:
-            print_green(f"Success")
+            print_colored(f"Success", color=color.WHITE)
          return result
       return wrapper
    return decorator
+
+
+def print_test_header(header):
+   print_colored(f'\n\nTEST: {header}', color=color.GREEN)
 
 
 def print_script_code(prefix, code):
@@ -105,6 +81,7 @@ def print_script_code(prefix, code):
    for script in code:
       print(script, flush=True)
       print('\n')
+
 
 def is_datetime_type(type_str):
     return 'DateTime64' in str(type_str)
