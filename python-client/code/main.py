@@ -198,12 +198,15 @@ def create_mv(client, sc_script):
    client.command(sc_script)
 
 
-@trace('Joining')
+def join_check_and_warmup(client, settings='', filter=''):
+   joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
+   print(f'JOIN returned {joined.result_rows[0][0]} rows', flush=True)
+
+
 @avg_time(n_calls=10, verbose=True)
 def join_asof(client, settings='', filter='', rows_to_print=-1):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
-
 
 @trace('Selecting from MV')
 @avg_time(n_calls=10, verbose=True)
@@ -263,8 +266,10 @@ def main():
       if config.REGENERATE_DATA: generate_dataset(client, engine, partition, orderby, primarykey, settings)
       generate_mv(client)
       check_data(client, verbose=True)
+      print_script_code('ASOF JOIN', [sql.q_asof_join])
+      join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print_script_code('ASOF JOIN', [sql.q_asof_join])
+         print(f'Join settings: {join_settings}', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
@@ -274,8 +279,9 @@ def main():
       generate_mv(client)
       check_data(client, verbose=True)
       print_script_code('ASOF JOIN', [sql.q_asof_join])
+      join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print_script_code('ASOF JOIN', [sql.q_asof_join])
+         print(f'Join settings: {join_settings}', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 

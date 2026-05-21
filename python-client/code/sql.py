@@ -68,12 +68,12 @@ q_asof_join = """
       t.qty as trade_qty,
       t.local_ts as trade_local_ts,
       q.local_ts as quote_local_ts,
-      round(t.price, 5) as trade_price,
-      round(q.bid_price, 5) as bid_price,
-      round(q.ask_price, 5) as ask_price,
+      t.price as trade_price,
+      q.bid_price as bid_price,
+      q.ask_price as ask_price,
       -- Additional fields to check dataset correctness
-      round(t.price - q.bid_price, 5) as spread_to_bid,
-      round(q.ask_price - t.price, 5) as spread_to_ask,
+      t.price - q.bid_price as spread_to_bid,
+      q.ask_price - t.price as spread_to_ask,
       dateDiff('microsecond', q.local_ts, t.local_ts) AS quote_to_request_latency_us
    FROM md_trades AS t
    ASOF LEFT JOIN md_quotes AS q
