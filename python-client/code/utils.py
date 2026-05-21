@@ -91,11 +91,11 @@ def print_script_code(prefix, code):
 
 def print_test_context(what, context, field_to_highlight):
    print_colored(f'Run {what} with context:\n', color=Color.CYAN)
-   for param_name, param_value in asdict(context).items():
+   for param_name, param_value in context.fields().items():
       if param_name == field_to_highlight:
-         print_colored(f'{param_name}: {param_value}', color=Color.RED)
+         print_colored(f'{param_name}: {str(param_value)}', color=Color.RED)
       else:
-         print_colored(f'{param_name}: {param_value}', color=Color.BLUE)
+         print_colored(f'{param_name}: {str(param_value)}', color=Color.BLUE)
 
 
 def is_datetime_type(type_str):

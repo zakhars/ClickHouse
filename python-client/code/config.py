@@ -104,14 +104,14 @@ class test_context:
    filter: List[str]
    join_settings: List[str]
 
-   def __str__(self):
-      return (f'Table ENGINE: {self.engine}\n'
-              f'Table PARTITION BY: {self.partition}\n'
-              f'Table ORDER BY: {self.orderby}\n'
-              f'Table PRIMARY KEY: {self.primarykey}\n'
-              f'Table INDEX GRANULARITY: {self.granularity}\n'
-              f'Join  FILTER: {self.filter}\n'
-              f'Join  SETTINGS: {self.join_settings}')
+   def fields(self):
+      return {'Table ENGINE': self.engine,
+              'Table PARTITION BY': self.partition,
+              'Table ORDER BY': self.orderby,
+              'Table PRIMARY KEY': self.primarykey,
+              'Table INDEX GRANULARITY': self.granularity,
+              'Join  FILTER': self.filter,
+              'Join  SETTINGS': self.join_settings }
 
 DB = {
    'host': 'clickhouse-marketdata',
