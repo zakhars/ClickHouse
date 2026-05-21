@@ -2,6 +2,28 @@ from functools import wraps
 import statistics
 import time
 
+def print_green(text):
+   COLOR_TEST_CASE = '\033[92m'
+   COLOR_RESET = '\033[0m'
+   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
+
+
+def print_red(text):
+   COLOR_TEST_CASE = '\033[91m'
+   COLOR_RESET = '\033[0m'
+   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
+
+
+def print_yellow(text):
+   COLOR_TEST_CASE = '\033[93m'
+   COLOR_RESET = '\033[0m'
+   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
+
+
+def print_test_header(number, header):
+   print_green(f'\n\nTest #{number}: {header}')
+
+
 # Decorator to measure function execution time and show stats
 def avg_time(n_calls=10, verbose=True, return_stats=False):
    def decorator(func):
@@ -21,7 +43,7 @@ def avg_time(n_calls=10, verbose=True, return_stats=False):
          max_time = max(times)
          std_dev = statistics.stdev(times) if len(times) > 1 else 0
 
-         print(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
+         print_yellow(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
          if verbose:
             print(f"   Min: {min_time:.6f} s")
             print(f"   Max: {max_time:.6f} s")
@@ -40,13 +62,14 @@ def avg_time(n_calls=10, verbose=True, return_stats=False):
    return decorator
 
 
+
 def trace(msg, enabled=True):
    def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
-         if enabled: print(f"\n{msg}... ", flush=True)
+         if enabled: print_green(f"\n{msg}... ")
          result = func(*args, **kwargs)
-         if enabled: print(f"Success", flush=True)
+         if enabled: print_green(f"Success")
          return result
       return wrapper
    return decorator
@@ -84,4 +107,3 @@ def print_clickhouse_rowset(result, num_rows=0):
          formatted_values.append(str(val).ljust(width))
       row_to_print = " | ".join(formatted_values)
       print(row_to_print)
-

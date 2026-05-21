@@ -6,7 +6,7 @@ import clickhouse_connect
 import traceback
 from datetime import datetime
 
-from utils import avg_time, trace, print_clickhouse_rowset
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_green, print_red, print_yellow
 import sql
 import config
 from config import NS_IN_SEC
@@ -240,11 +240,6 @@ def generate_mv(client):
    drop_mv(client, sql.sc_drop_mv)
    create_mv(client, sql.sc_create_mv)
 
-def print_test_header(number, header):
-   COLOR_TEST_CASE = '\033[92m'
-   COLOR_RESET = '\033[0m'
-   print(f'\n\n{COLOR_TEST_CASE}Test #{number}: {header}{COLOR_RESET}', flush=True)
-
 
 def main():
    client = None
@@ -288,7 +283,7 @@ def main():
       print(f'========== Benchmarks stop ==========', flush=True)
 
    except Exception as e:
-      print(f'\n\nException occurred in main(): {e}\n', flush=True)
+      print_red(f'\n\nException occurred in main(): {e}\n')
       traceback.print_exc()
       return -1
    finally:
