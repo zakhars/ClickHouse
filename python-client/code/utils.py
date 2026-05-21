@@ -91,8 +91,9 @@ def print_script_code(prefix, code):
 
 def print_test_context(what, context, field_to_highlight):
    print_colored(f'Run {what} with context:\n', color=Color.CYAN)
+   print(asdict(context).items())
    for param_name, param_value in asdict(context).items():
-      if field_to_highlight == field_to_highlight:
+      if param_name == field_to_highlight:
          print_colored(param_value, color=Color.RED)
       else:
          print_colored(param_value, color=Color.CYAN)
