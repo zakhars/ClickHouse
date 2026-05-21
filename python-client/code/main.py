@@ -167,11 +167,11 @@ def check_data(client, verbose=False):
    trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
 
    if verbose:
-      print(f'\nQuotes inserted {quotes_row_count}. First and last rows:\n')
+      print(f'\nQuotes inserted {quotes_row_count}. First and last rows:', flush=True)
       quotes = client.query(sql.q_select_from_quotes)
       print_clickhouse_rowset(quotes, 10)
 
-      print(f'\nTrades inserted {trades_row_count}. First and last rows:\n')
+      print(f'\nTrades inserted {trades_row_count}. First and last rows:', flush=True)
       trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
 
@@ -267,10 +267,11 @@ def main():
 
       print(f'========== Benchmarks start ==========', flush=True)
 
+      filter = config.FILTER['none']
       for join_settings in config.JOIN_SETTINGS:
          print(f'\nJoin settings: {join_settings}')
          print(f'Filter: {filter}')
-         join_asof(client=client, settings=join_settings, filter=config.FILTER['none'], rows_to_print=-1)
+         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
 
       select_from_mv(client, rows_to_print=-1)
 

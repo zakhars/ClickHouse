@@ -78,7 +78,7 @@ q_asof_join = """
    FROM md_trades AS t
    ASOF LEFT JOIN md_quotes AS q
       ON t.symbol = q.symbol 
-      AND t.local_ts >= q.local_ts -- trade after quote
+      AND t.local_ts >= q.local_ts -- trade comes after quote received
 """
 
 
