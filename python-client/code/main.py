@@ -200,7 +200,7 @@ def create_mv(client, sc_script):
 
 def join_check_and_warmup(client, settings='', filter=''):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
-   print(f'JOIN returned {joined.result_rows[0][0]} rows', flush=True)
+   print(f'JOIN returned {len(joined.result_rows)} rows', flush=True)
 
 
 @avg_time(n_calls=10, verbose=True)
@@ -269,7 +269,7 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print(f'Join settings: {join_settings}', flush=True)
+         print(f'\nJoin settings: {join_settings}. Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
@@ -281,7 +281,7 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print(f'Join settings: {join_settings}', flush=True)
+         print(f'\nJoin settings: {join_settings}. Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
