@@ -6,7 +6,7 @@ import clickhouse_connect
 import traceback
 from datetime import datetime
 
-from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_green, print_red, print_yellow
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_green, print_red, print_blue
 import sql
 import config
 from config import NS_IN_SEC
@@ -230,10 +230,10 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
    quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
    insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
 
-   print("Complete partitioning after inserting data", flush=True)
+   print("Completing partitioning after inserting data", flush=True)
    client.command(sql.q_complete_partitioning_quotes)
    client.command(sql.q_complete_partitioning_trades)
-   print('Wait an additional time after data partitioning', flush=True)
+   print('Waiting additional time after data partitioning', flush=True)
    time.sleep(10)
 
 def generate_mv(client):
@@ -264,7 +264,8 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print(f'\nJoin settings: {join_settings}. Executing:', flush=True)
+         print_blue(f'\nJoin settings: {join_settings}')
+         print(f'Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
@@ -276,7 +277,8 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print(f'\nJoin settings: {join_settings}. Executing:', flush=True)
+         print_blue(f'\nJoin settings: {join_settings}')
+         print(f'Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
