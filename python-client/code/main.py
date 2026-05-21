@@ -41,7 +41,7 @@ def init_schema_from_script_files(client, scripts_path):
       client.command(script)
 
 def print_script_code(prefix, code):
-   print(f'\n\n{prefix} code:', flush=True)
+   print(f'\n{prefix} code:', flush=True)
    for script in code:
       print(script, flush=True)
       print('\n')
@@ -95,7 +95,7 @@ def insert_quotes(client, chunk_size=1):
 
    min_dt = datetime.fromtimestamp(min_ts   // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
    max_dt = datetime.fromtimestamp(local_ts // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
-   print(f'\nInserted quotes time range is {min_dt} to {max_dt}')
+   print(f'Inserted quotes time range is {min_dt} to {max_dt}')
 
    return quotes
 
@@ -164,11 +164,11 @@ def check_data(client, verbose=True):
    trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
 
    if verbose:
-      print(f'\nQuotes inserted {quotes_row_count}. First and last rows:', flush=True)
+      print(f'Quotes inserted {quotes_row_count}. First and last rows:', flush=True)
       quotes = client.query(sql.q_select_from_quotes)
       print_clickhouse_rowset(quotes, 10)
 
-      print(f'\nTrades inserted {trades_row_count}. First and last rows:', flush=True)
+      print(f'Trades inserted {trades_row_count}. First and last rows:', flush=True)
       trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
 
