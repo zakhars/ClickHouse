@@ -22,6 +22,11 @@ def print_blue(text):
    COLOR_RESET = '\033[0m'
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
 
+def print_white(text):
+   COLOR_TEST_CASE = '\033[97m'
+   COLOR_RESET = '\033[0m'
+   print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
+
 
 def print_test_header(number, header):
    print_green(f'\n\nTest #{number}: {header}')
@@ -70,9 +75,12 @@ def trace(msg, enabled=True):
    def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
-         if enabled: print_green(f"\n{msg}... ")
+         if enabled:
+            print(f"")
+            print_white(f"{msg}... ")
          result = func(*args, **kwargs)
-         if enabled: print_green(f"Success")
+         if enabled:
+            print_green(f"Success")
          return result
       return wrapper
    return decorator
