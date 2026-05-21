@@ -44,12 +44,13 @@ def trace(msg, enabled=True):
    def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
-         if enabled: print(f"\n{msg}... ", flush=True, end='')
+         if enabled: print(f"\n{msg}... ", flush=True)
          result = func(*args, **kwargs)
          if enabled: print(f"Success", flush=True)
          return result
       return wrapper
    return decorator
+
 
 def is_datetime_type(type_str):
     return 'DateTime64' in str(type_str)
