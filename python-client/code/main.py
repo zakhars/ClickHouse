@@ -240,6 +240,7 @@ def generate_mv(client):
 def run_test(client, context, verbose=False):
    # We may want to skip initial dataset generation
    if config.REGENERATE_DATASET:
+      config.ENABLE_TRACE = False
       generate_dataset(
          client,
          context.engine,
@@ -248,6 +249,7 @@ def run_test(client, context, verbose=False):
          context.primarykey,
          context.granularity)
       check_data(client, verbose=verbose)
+      config.ENABLE_TRACE = True
 
    generate_mv(client)
    if config.PRINT_SCRIPT_CODE:
