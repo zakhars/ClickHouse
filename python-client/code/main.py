@@ -295,7 +295,7 @@ def main():
       config.REGENERATE_DATASET = False
       for join_settings in config.JOIN_SETTINGS.values():
          context.join_settings = join_settings
-         run_test(client, context, False, 'join_settings')
+         run_test(client, context, False, 'Join  SETTINGS')
 
       # Compare different partitioning settings for "hash" engine
       print_test_header('Compare different PARTITION BY')
@@ -303,7 +303,7 @@ def main():
       context.join_settings = config.JOIN_SETTINGS['hash']
       for partition in config.PARTITION_BY.values():
          context.partition = partition
-         run_test(client, context, False, 'partition')
+         run_test(client, context, False, 'Table PARTITION BY')
 
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)

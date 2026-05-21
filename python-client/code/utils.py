@@ -95,7 +95,7 @@ def print_test_context(what, context, field_to_highlight):
       if param_name == field_to_highlight:
          print_colored(f'{param_name}: {str(param_value)}', color=Color.RED)
       else:
-         print_colored(f'{param_name}: {str(param_value)}', color=Color.BLUE)
+         print_colored(f'{param_name}: {str(param_value)}', color=Color.CYAN)
 
 
 def is_datetime_type(type_str):
