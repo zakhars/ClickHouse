@@ -288,22 +288,29 @@ def main():
       config.PRINT_SCRIPT_CODE = False
       config.SILENT_STATS = True
 
-      # Check all JOIN engines initially
+      # Check different JOIN algorithms
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
       # Only "hash" and "full_sorting_merge" left
-      print_test_header('Compare JOIN ENGINES')
+      print_test_header('Compare JOIN ALGORITHMS without partitioning')
       config.REGENERATE_DATASET = False
       for join_settings in config.JOIN_SETTINGS.values():
          context.join_settings = join_settings
          run_test(client, context, False, 'Join  SETTINGS')
 
-      # Compare different partitioning settings for "hash" engine
-      print_test_header('Compare different PARTITION BY')
+      # Compare different partitioning settings for "hash" algorithm
+      print_test_header('Compare PARTITION BY with fixed "hash" algorithm')
       config.REGENERATE_DATASET = True
       context.join_settings = config.JOIN_SETTINGS['hash']
       for partition in config.PARTITION_BY.values():
          context.partition = partition
          run_test(client, context, False, 'Table PARTITION BY')
+
+      # Compare JOIN algorithms with fixed partitioning
+      print_test_header('Compare JOIN SETTINGS with fixed PARTITION BY toYYYYMMDD')
+      config.REGENERATE_DATASET = False
+      for join_settings in [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting_merge']]:
+         context.join_settings = join_settings
+         run_test(client, context, False, 'Join  SETTINGS')
 
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
