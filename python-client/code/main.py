@@ -261,12 +261,12 @@ def run_test(client, number, name, context):
    generate_mv(client)
    check_data(client, verbose=True)
    utils.print_script_code('ASOF JOIN', [sql.q_asof_join])
-   join_check_and_warmup(client, '', context.filter)
    for filter in context.filter:
+      join_check_and_warmup(client, '', context.filter)
       for join_settings in context.join_setings:
          print('')
          print_blue(f'Run ASOF JOIN with settings: {join_settings}, filter={filter}')
-         join_asof(client=client, settings=join_settings, filter=context.filter, rows_to_print=-1)
+         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
    print('')
    print_blue(f'Selecting from MV:')
    select_from_mv(client, rows_to_print=-1)
