@@ -47,7 +47,7 @@ def print_script_code(prefix, code):
       print('\n')
 
 @trace('Inserting quotes')
-@avg_time(n_calls=1, verbose=True)
+@avg_time(n_calls=1, verbose=False)
 def insert_quotes(client, chunk_size=1):
    if chunk_size > config.NUM_QUOTES: chunk_size = config.NUM_QUOTES
    sources = list(config.BASE_DATA.keys())
@@ -101,7 +101,7 @@ def insert_quotes(client, chunk_size=1):
 
 
 @trace('Inserting trades')
-@avg_time(n_calls=1, verbose=True)
+@avg_time(n_calls=1, verbose=False)
 def insert_trades(client, quotes, chunk_size=1):
    if chunk_size > config.NUM_TRADES: chunk_size = config.NUM_TRADES
 
@@ -159,7 +159,7 @@ def insert_trades(client, quotes, chunk_size=1):
 
 
 @trace('Checking data')
-def check_data(client, verbose=False):
+def check_data(client, verbose=True):
    quotes_row_count = client.query(sql.q_select_quotes_count).result_rows[0][0]
    trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
 
@@ -203,13 +203,13 @@ def join_check_and_warmup(client, settings='', filter=''):
    print(f'JOIN returned {len(joined.result_rows)} rows', flush=True)
 
 
-@avg_time(n_calls=10, verbose=True)
+@avg_time(n_calls=10, verbose=False)
 def join_asof(client, settings='', filter='', rows_to_print=-1):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
 
 @trace('Selecting from MV')
-@avg_time(n_calls=10, verbose=True)
+@avg_time(n_calls=10, verbose=False)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print_clickhouse_rowset(selected, rows_to_print)

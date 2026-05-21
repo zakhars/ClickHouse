@@ -21,10 +21,8 @@ def avg_time(n_calls=10, verbose=True, return_stats=False):
          max_time = max(times)
          std_dev = statistics.stdev(times) if len(times) > 1 else 0
 
+         print(f"\nStats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
          if verbose:
-            print(f"\nStats for function '{func.__name__}':")
-            print(f"   Calls: {n_calls}")
-            print(f"   Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)")
             print(f"   Min: {min_time:.6f} s")
             print(f"   Max: {max_time:.6f} s")
             print(f"   Stddev: {std_dev:.6f} s")
