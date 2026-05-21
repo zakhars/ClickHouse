@@ -385,7 +385,7 @@ def main():
       # Compare INDEX GRANULARITY for full_sorting_merge and PREWHERE filter by local_ts
       print_test_header('Check data correctness for sorting by seqno')
       config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['hash']
+      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
       context.filter = config.FILTER['prewhere_date_trade']
       context.orderby = config.ORDER_BY['symbol_time_seqno']
       for granularity in config.INDEX_GRANULARITY.values():

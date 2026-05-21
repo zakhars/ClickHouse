@@ -36,7 +36,7 @@ CHECK_QUERY_PLAN = 'EXPLAIN indexes = 1'
 JOIN_SETTINGS = {
    'none'              : {},
    'auto'              : {'join_algorithm': 'auto'},
-   'hash'              : {'join_algorithm': 'hash', 'asof_join_use_sorted_data': 1},
+   'hash'              : {'join_algorithm': 'hash'},
    'parallel_hash'     : {'join_algorithm': 'parallel_hash'},
    'full_sorting_merge': {'join_algorithm': 'full_sorting_merge'}
 }
@@ -88,7 +88,7 @@ ORDER_BY = {
 }
 
 INDEX_GRANULARITY = {
-   '1'   : 'SETTINGS index_granularity = 1',
+   '1'   : 'SETTINGS index_granularity = 64', #1',
    '128' : 'SETTINGS index_granularity = 128',
    '1024': 'SETTINGS index_granularity = 1024',
    '4096': 'SETTINGS index_granularity = 4096',
