@@ -35,13 +35,13 @@ BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta
 
 CHECK_QUERY_PLAN = 'EXPLAIN indexes = 1'
 
-JOIN_SETTINGS = [
-   {},
-   {'join_algorithm': 'auto'},
-   {'join_algorithm': 'hash'},
-   {'join_algorithm': 'parallel_hash'},
-   {'join_algorithm': 'full_sorting_merge'}
-]
+JOIN_SETTINGS = {
+   'none'              : {},
+   'auto'              : {'join_algorithm': 'auto'},
+   'hash'              : {'join_algorithm': 'hash'},
+   'parallel_hash'     : {'join_algorithm': 'parallel_hash'},
+   'full_sorting_merge': {'join_algorithm': 'full_sorting_merge'}
+}
 
 DATES = "between '2026-04-27 00:00:00' AND '2026-04-27 23:59:59.999'"
 SYMBOLS = "='F.ENQM27'"

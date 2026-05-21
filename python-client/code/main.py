@@ -5,8 +5,10 @@ import random
 import clickhouse_connect
 import traceback
 from datetime import datetime
+from dataclasses import dataclass
+from typing import List
 
-from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_green, print_red, print_blue
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_red, print_blue
 import sql
 import config
 from config import NS_IN_SEC
@@ -213,10 +215,10 @@ def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print_clickhouse_rowset(selected, rows_to_print)
 
-def generate_dataset(client, engine, partition, orderby, primarykey, settings):
+def generate_dataset(client, engine, partition, orderby, primarykey, granularity):
    reset_database(client)  # Drop tables to be able to re-create them with custom settings
 
-   table_creation_settings = '\n'.join([engine, partition, orderby, primarykey, settings])
+   table_creation_settings = '\n'.join([engine, partition, orderby, primarykey, granularity])
 
    patched_sc_scripts = [
       sql.sc_create_table_md_quotes + table_creation_settings,
@@ -235,9 +237,44 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
    print('Waiting additional time after data partitioning', flush=True)
    time.sleep(10)
 
+
 def generate_mv(client):
    drop_mv(client, sql.sc_drop_mv)
    create_mv(client, sql.sc_create_mv)
+
+@dataclass
+class test_context:
+   engine: str
+   partition: str
+   orderby: str
+   primarykey: str
+   granularity: str
+   filter: List[str]
+   join_setings: List[str]
+
+def run_test(client, number, name, context):
+   print_test_header(number, name)
+   # We may want to skip initial dataset generation
+   if config.REGENERATE_DATA:
+      generate_dataset(
+         client,
+         context.engine,
+         context.partition,
+         context.orderby,
+         context.primarykey,
+         context.granularity)
+   generate_mv(client)
+   check_data(client, verbose=True)
+   print_script_code('ASOF JOIN', [sql.q_asof_join])
+   join_check_and_warmup(client, '', context.filter)
+   for filter in context.filter:
+      for join_settings in context.join_setings:
+         print('')
+         print_blue(f'Run ASOF JOIN with settings: {join_settings}, filter={filter}')
+         join_asof(client=client, settings=join_settings, filter=context.filter, rows_to_print=-1)
+   print('')
+   print_blue(f'Selecting from MV:')
+   select_from_mv(client, rows_to_print=-1)
 
 
 def main():
@@ -246,42 +283,32 @@ def main():
       client = connect()
 
       # Default settings
-      engine = config.ENGINE['merge_tree']
-      partition = config.PARTITION_BY['none']
-      orderby = config.ORDER_BY['symbol_time']
-      primarykey = config.PRIMARY_KEY['none']
-      settings = config.INDEX_GRANULARITY['8192']
-      filter = config.FILTER['none']
+      context = test_context(
+         engine = config.ENGINE['merge_tree'],
+         partition = config.PARTITION_BY['none'],
+         orderby = config.ORDER_BY['symbol_time'],
+         primarykey = config.PRIMARY_KEY['none'],
+         granularity = config.INDEX_GRANULARITY['8192'],
+         filter = [config.FILTER['none']],
+         join_setings=[]
+      )
 
       print(f'========== Benchmarks start ==========', flush=True)
 
-      print_test_header(1, 'Compare ENGINE without partitions')
-      # We may want to skip initial dataset generation
-      if config.REGENERATE_DATA: generate_dataset(client, engine, partition, orderby, primarykey, settings)
-      generate_mv(client)
-      check_data(client, verbose=True)
-      print_script_code('ASOF JOIN', [sql.q_asof_join])
-      join_check_and_warmup(client, '', filter)
-      for join_settings in config.JOIN_SETTINGS:
-         print('')
-         print_blue(f'Run ASOF JOIN with settings: {join_settings}')
-         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
-      print_blue(f'Selecting from MV:')
-      select_from_mv(client, rows_to_print=-1)
 
-      print_test_header(2, 'Compare ENGINE with partitioning by DAY')
-      partition = config.PARTITION_BY['toYYYYMMDD']
-      generate_dataset(client, engine, partition, orderby, primarykey, settings)
-      generate_mv(client)
-      check_data(client, verbose=True)
-      print_script_code('ASOF JOIN', [sql.q_asof_join])
-      join_check_and_warmup(client, '', filter)
-      for join_settings in config.JOIN_SETTINGS:
-         print('')
-         print_blue(f'Run ASOF JOIN with settings: {join_settings}')
-         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
-      print_blue(f'Selecting from MV:')
-      select_from_mv(client, rows_to_print=-1)
+      # Check all JOIN engines initially
+      context.join_setings = config.JOIN_SETTINGS.values()
+      run_test(client, 1, 'Compare JOIN ENGINES', context)
+
+
+      # Leave only "hash" and "full_sorting_merge"
+      # We identified that default, auto and parallel_hash work equal to hash - exclude them
+      context.join_setings = [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting']]
+      # Compare different partitioning settings for given 2 JOIN engines
+      context.partition = config.PARTITION_BY
+      run_test(client, 2, 'Compare ENGINEs with different partitioning', context)
+
+
 
       print(f'========== Benchmarks stop ==========', flush=True)
 
