@@ -296,7 +296,7 @@ def main():
 
       # Leave only "hash" and "full_sorting_merge"
       # We identified that default, auto and parallel_hash work equal to hash - exclude them
-      context.join_setings = [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting']]
+      context.join_setings = [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting_merge']]
       # Compare different partitioning settings for given 2 JOIN engines
       context.partition = config.PARTITION_BY
       run_test(client, 2, 'Compare ENGINEs with different partitioning', context)
