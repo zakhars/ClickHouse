@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from typing import List
 
+
 REGENERATE_DATASET = True
 NUM_QUOTES = 10_000_000
 NUM_TRADES = 100_000
