@@ -250,7 +250,7 @@ def run_test(client, context, verbose=False):
       print_script_code('ASOF JOIN', [sql.q_asof_join])
    print_colored(f'Run ASOF JOIN with context:\n{context}', color=Color.BLUE)
    num_rows = join_asof(client, context.join_settings, context.filter, -1)
-   print(f'JOIN returned {num_rows} rows', flush=True)
+   print(f'JOIN returned {num_rows} rows\n\n', flush=True)
 
 
 def main():
