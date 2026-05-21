@@ -62,17 +62,17 @@ def trace(msg, enabled=True):
       def wrapper(*args, **kwargs):
          if enabled:
             print(f"")
-            print_colored(f"{msg}... ", color=Сolor.WHITE)
+            print_colored(f"{msg}... ", color=Color.WHITE)
          result = func(*args, **kwargs)
          if enabled:
-            print_colored(f"Success", color=Сolor.WHITE)
+            print_colored(f"Success", color=Color.WHITE)
          return result
       return wrapper
    return decorator
 
 
 def print_test_header(header):
-   print_colored(f'\n\nTEST: {header}', color=Сolor.GREEN)
+   print_colored(f'\n\nTEST: {header}', color=Color.WHITE)
 
 
 def print_script_code(prefix, code):
