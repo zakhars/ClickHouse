@@ -291,93 +291,103 @@ def main():
       # Check different JOIN algorithms
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
       # Only "hash" and "full_sorting_merge" left
-      print_test_header('Compare JOIN ALGORITHMS without partitioning')
-      config.REGENERATE_DATASET = False
-      for join_settings in config.JOIN_SETTINGS.values():
-         context.join_settings = join_settings
-         run_test(client, context, False, 'Join  SETTINGS')
-
-      # Compare different partitioning settings for "hash" algorithm
-      print_test_header('Compare PARTITION BY with fixed "hash" algorithm')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['hash']
-      for partition in config.PARTITION_BY.values():
-         context.partition = partition
-         run_test(client, context, False, 'Table PARTITION BY')
-
-      # Compare JOIN algorithms with fixed partitioning
-      print_test_header('Compare JOIN SETTINGS with fixed PARTITION BY toYYYYMMDD')
-      config.REGENERATE_DATASET = False
-      for join_settings in [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting_merge']]:
-         context.join_settings = join_settings
-         run_test(client, context, False, 'Join  SETTINGS')
-
-      # Compare filtering with fixed JOIN algorithm "hash"
-      print_test_header('Compare different FILTERING with fixed JOIN algorithm "hash"')
-      config.REGENERATE_DATASET = False
-      context.join_settings = config.JOIN_SETTINGS['hash']
-      for filter in config.FILTER.values():
-         context.filter = filter
-         run_test(client, context, False, 'Join  FILTER')
-
-      # Compare filtering with fixed JOIN algorithm "hash"
-      print_test_header('Compare different FILTERING with fixed JOIN algorithm "full_sorting_merge"')
-      config.REGENERATE_DATASET = False
-      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
-      for filter in config.FILTER.values():
-         context.filter = filter
-         run_test(client, context, False, 'Join  FILTER')
-
-      # Compare INDEX GRANULARITY for hash
-      print_test_header('Compare INDEX GRANULARITY for hash algorithm')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['hash']
-      context.filter = config.FILTER['none']
-      for granularity in config.INDEX_GRANULARITY.values():
-         context.granularity = granularity
-         run_test(client, context, False, 'Table INDEX GRANULARITY')
-
-      # Compare INDEX GRANULARITY for full_sorting_merge
-      print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
-      context.filter = config.FILTER['none']
-      for granularity in config.INDEX_GRANULARITY.values():
-         context.granularity = granularity
-         run_test(client, context, False, 'Table INDEX GRANULARITY')
-
-      # Compare INDEX GRANULARITY for hash and WHERE filter by local_ts
-      print_test_header('Compare INDEX GRANULARITY for hash algorithm and WHERE filter by local_ts')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['hash']
-      context.filter = config.FILTER['where_date_trade']
-      for granularity in config.INDEX_GRANULARITY.values():
-         context.granularity = granularity
-         run_test(client, context, False, 'Table INDEX GRANULARITY')
-
-      # Compare INDEX GRANULARITY for full_sorting_merge and WHERE filter by local_ts
-      print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and WHERE filter by local_ts')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
-      context.filter = config.FILTER['where_date_trade']
-      for granularity in config.INDEX_GRANULARITY.values():
-         context.granularity = granularity
-         run_test(client, context, False, 'Table INDEX GRANULARITY')
-
-      # Compare INDEX GRANULARITY for hash and PREWHERE filter by local_ts
-      print_test_header('Compare INDEX GRANULARITY for hash algorithm and PREWHERE filter by local_ts')
-      config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['hash']
-      context.filter = config.FILTER['prewhere_date_trade']
-      for granularity in config.INDEX_GRANULARITY.values():
-         context.granularity = granularity
-         run_test(client, context, False, 'Table INDEX GRANULARITY')
+      # print_test_header('Compare JOIN ALGORITHMS without partitioning')
+      # config.REGENERATE_DATASET = False
+      # for join_settings in config.JOIN_SETTINGS.values():
+      #    context.join_settings = join_settings
+      #    run_test(client, context, False, 'Join  SETTINGS')
+      #
+      # # Compare different partitioning settings for "hash" algorithm
+      # print_test_header('Compare PARTITION BY with fixed "hash" algorithm')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['hash']
+      # for partition in config.PARTITION_BY.values():
+      #    context.partition = partition
+      #    run_test(client, context, False, 'Table PARTITION BY')
+      #
+      # # Compare JOIN algorithms with fixed partitioning
+      # print_test_header('Compare JOIN SETTINGS with fixed PARTITION BY toYYYYMMDD')
+      # config.REGENERATE_DATASET = False
+      # for join_settings in [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting_merge']]:
+      #    context.join_settings = join_settings
+      #    run_test(client, context, False, 'Join  SETTINGS')
+      #
+      # # Compare filtering with fixed JOIN algorithm "hash"
+      # print_test_header('Compare different FILTERING with fixed JOIN algorithm "hash"')
+      # config.REGENERATE_DATASET = False
+      # context.join_settings = config.JOIN_SETTINGS['hash']
+      # for filter in config.FILTER.values():
+      #    context.filter = filter
+      #    run_test(client, context, False, 'Join  FILTER')
+      #
+      # # Compare filtering with fixed JOIN algorithm "hash"
+      # print_test_header('Compare different FILTERING with fixed JOIN algorithm "full_sorting_merge"')
+      # config.REGENERATE_DATASET = False
+      # context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      # for filter in config.FILTER.values():
+      #    context.filter = filter
+      #    run_test(client, context, False, 'Join  FILTER')
+      #
+      # # Compare INDEX GRANULARITY for hash
+      # print_test_header('Compare INDEX GRANULARITY for hash algorithm')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['hash']
+      # context.filter = config.FILTER['none']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
+      #
+      # # Compare INDEX GRANULARITY for full_sorting_merge
+      # print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      # context.filter = config.FILTER['none']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
+      #
+      # # Compare INDEX GRANULARITY for hash and WHERE filter by local_ts
+      # print_test_header('Compare INDEX GRANULARITY for hash algorithm and WHERE filter by local_ts')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['hash']
+      # context.filter = config.FILTER['where_date_trade']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
+      #
+      # # Compare INDEX GRANULARITY for full_sorting_merge and WHERE filter by local_ts
+      # print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and WHERE filter by local_ts')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      # context.filter = config.FILTER['where_date_trade']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
+      #
+      # # Compare INDEX GRANULARITY for hash and PREWHERE filter by local_ts
+      # print_test_header('Compare INDEX GRANULARITY for hash algorithm and PREWHERE filter by local_ts')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['hash']
+      # context.filter = config.FILTER['prewhere_date_trade']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
+      #
+      # # Compare INDEX GRANULARITY for full_sorting_merge and PREWHERE filter by local_ts
+      # print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and PREWHERE filter by local_ts')
+      # config.REGENERATE_DATASET = True
+      # context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      # context.filter = config.FILTER['prewhere_date_trade']
+      # for granularity in config.INDEX_GRANULARITY.values():
+      #    context.granularity = granularity
+      #    run_test(client, context, False, 'Table INDEX GRANULARITY')
 
       # Compare INDEX GRANULARITY for full_sorting_merge and PREWHERE filter by local_ts
-      print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and PREWHERE filter by local_ts')
+      print_test_header('Check data correctness for sorting by seqno')
       config.REGENERATE_DATASET = True
-      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      context.join_settings = config.JOIN_SETTINGS['hash']
       context.filter = config.FILTER['prewhere_date_trade']
+      context.orderby = config.ORDER_BY['symbol_time_seqno']
       for granularity in config.INDEX_GRANULARITY.values():
          context.granularity = granularity
          run_test(client, context, False, 'Table INDEX GRANULARITY')

@@ -83,7 +83,8 @@ PRIMARY_KEY = {
 
 ORDER_BY = {
    'none'       : '',
-   'symbol_time': 'ORDER BY (symbol, local_ts)'
+   'symbol_time': 'ORDER BY (symbol, local_ts)',
+   'symbol_time_seqno': 'ORDER BY (symbol, local_ts, seqno)'
 }
 
 INDEX_GRANULARITY = {
