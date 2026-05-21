@@ -246,53 +246,45 @@ def generate_mv(client):
    drop_mv(client, sql.sc_drop_mv)
    create_mv(client, sql.sc_create_mv)
 
+def print_test_header(number, header):
+   COLOR_TEST_CASE = '\033[92m'
+   COLOR_RESET = '\033[0m'
+   print(f'{COLOR_TEST_CASE}Test #{number}: {header}{COLOR_RESET}', flush=True)
+
 
 def main():
    client = None
    try:
       client = connect()
 
-      if config.REGENERATE_DATA:
-         generate_dataset(
-            client,
-            engine=config.ENGINE['merge_tree'],
-            partition=config.PARTITION_BY['none'],
-            orderby=config.ORDER_BY['symbol_time'],
-            primarykey=config.PRIMARY_KEY['none'],
-            settings=config.INDEX_GRANULARITY['8192']
-         )
+      # Default settings
+      engine = config.ENGINE['merge_tree'],
+      partition = config.PARTITION_BY['none'],
+      orderby = config.ORDER_BY['symbol_time'],
+      primarykey = config.PRIMARY_KEY['none'],
+      settings = config.INDEX_GRANULARITY['8192']
+      filter = config.FILTER['none']
+
+      if config.REGENERATE_DATA: generate_dataset(client, engine, partition, orderby, primarykey, settings)
       generate_mv(client)
       check_data(client, verbose=True)
-
-      print_script_code('ASOF JOIN', [sql.q_asof_join])
 
       print(f'========== Benchmarks start ==========', flush=True)
 
-      filter = config.FILTER['none']
+      print_test_header(1, 'Compare ENGINE without partitions')
       for join_settings in config.JOIN_SETTINGS:
-         print(f'\nJoin settings: {join_settings}')
-         print(f'Filter: {filter}')
+         print_script_code('ASOF JOIN', [sql.q_asof_join])
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
-      # Explicitly re-generate data to change partitioning
-      generate_dataset(
-         client,
-         engine=config.ENGINE['merge_tree'],
-         partition=config.PARTITION_BY['toYYYYMMDD'],
-         orderby=config.ORDER_BY['symbol_time'],
-         primarykey=config.PRIMARY_KEY['none'],
-         settings=config.INDEX_GRANULARITY['8192']
-      )
+      print_test_header(1, 'Compare ENGINE with partitioning by DAY')
+      partition = config.PARTITION_BY['toYYYYMMDD'],
+      generate_dataset(client, engine, partition, orderby, primarykey, settings)
       generate_mv(client)
       check_data(client, verbose=True)
-
       print_script_code('ASOF JOIN', [sql.q_asof_join])
-
-      filter = config.FILTER['none']
       for join_settings in config.JOIN_SETTINGS:
-         print(f'\nJoin settings: {join_settings}')
-         print(f'Filter: {filter}')
+         print_script_code('ASOF JOIN', [sql.q_asof_join])
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
