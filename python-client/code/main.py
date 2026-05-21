@@ -48,6 +48,11 @@ def init_schema_from_script_files(client, scripts_path):
       script = Path(script_name).read_text(encoding='utf-8')
       client.command(script)
 
+def print_script_code(prefix, code):
+   print(f'\n\n{prefix} code:', flush=True)
+   for script in code:
+      print(script, flush=True)
+      print('\n')
 
 @trace('Inserting quotes')
 @avg_time(n_calls=1, verbose=True)
@@ -175,6 +180,8 @@ def check_data(client, verbose=False):
       trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
 
+      print_physical_size(client)
+
    if quotes_row_count != config.NUM_QUOTES:
       raise Exception(f'Wrong number of quotes. Expected {config.NUM_QUOTES}, got {quotes_row_count}')
    if trades_row_count != config.NUM_TRADES:
@@ -182,7 +189,7 @@ def check_data(client, verbose=False):
 
 
 @trace('Checking DB size')
-def get_physical_size(client):
+def print_physical_size(client):
    dbname = config.DB['database']
    sizes = client.query(
       f"SELECT table, sum(bytes_on_disk) AS size_on_disk FROM system.parts WHERE database='{dbname}' GROUP BY table")
@@ -222,10 +229,7 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
       sql.sc_create_table_md_trades + table_creation_settings,
    ]
 
-   print('\n\nTable creation scripts:', flush=True)
-   for sc_script in patched_sc_scripts:
-      print(sc_script, flush=True)
-      print('\n')
+   print_script_code('Table creation scripts', patched_sc_scripts)
 
    init_schema(client, patched_sc_scripts)
    truncate_data(client)
@@ -237,6 +241,10 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
    client.command(sql.q_complete_partitioning_trades)
    print('Wait an additional time after data partitioning', flush=True)
    time.sleep(10)
+
+def generate_mv(client):
+   drop_mv(client, sql.sc_drop_mv)
+   create_mv(client, sql.sc_create_mv)
 
 
 def main():
@@ -250,20 +258,13 @@ def main():
             engine=config.ENGINE['merge_tree'],
             partition=config.PARTITION_BY['none'],
             orderby=config.ORDER_BY['symbol_time'],
-            primarykey=config.PRIMARY_KEY['symbol_time'],
+            primarykey=config.PRIMARY_KEY['none'],
             settings=config.INDEX_GRANULARITY['8192']
          )
-
-      drop_mv(client, sql.sc_drop_mv)
-      create_mv(client, sql.sc_create_mv)
-
-      get_physical_size(client)
+      generate_mv(client)
       check_data(client, verbose=True)
 
-      print('\n\nASOF JOIN code:', flush=True)
-      print(sql.q_asof_join, flush=True)
-      print('\n')
-
+      print_script_code('ASOF JOIN', [sql.q_asof_join])
 
       print(f'========== Benchmarks start ==========', flush=True)
 
@@ -272,7 +273,27 @@ def main():
          print(f'\nJoin settings: {join_settings}')
          print(f'Filter: {filter}')
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
+      select_from_mv(client, rows_to_print=-1)
 
+      # Explicitly re-generate data to change partitioning
+      generate_dataset(
+         client,
+         engine=config.ENGINE['merge_tree'],
+         partition=config.PARTITION_BY['toYYYYMMDD'],
+         orderby=config.ORDER_BY['symbol_time'],
+         primarykey=config.PRIMARY_KEY['none'],
+         settings=config.INDEX_GRANULARITY['8192']
+      )
+      generate_mv(client)
+      check_data(client, verbose=True)
+
+      print_script_code('ASOF JOIN', [sql.q_asof_join])
+
+      filter = config.FILTER['none']
+      for join_settings in config.JOIN_SETTINGS:
+         print(f'\nJoin settings: {join_settings}')
+         print(f'Filter: {filter}')
+         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
       print(f'========== Benchmarks stop ==========', flush=True)
