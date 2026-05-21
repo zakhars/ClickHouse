@@ -74,9 +74,9 @@ def trace(msg, enabled):
 def print_test_header(header):
    formatted_header = f'TEST: {header}'
    print('\n', flush=True)
-   print_colored('='*(len(formatted_header)+6), color=Color.GREEN)
-   print_colored(f'|| TEST: {formatted_header} ||', color=Color.GREEN)
-   print_colored('='*(len(formatted_header)+6), color=Color.GREEN)
+   print_colored('='*(len(formatted_header)+4), color=Color.GREEN)
+   print_colored(f'‖ {formatted_header} ‖', color=Color.GREEN)
+   print_colored('='*(len(formatted_header)+4), color=Color.GREEN)
    print('')
 
 

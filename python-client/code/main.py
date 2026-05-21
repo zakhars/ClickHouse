@@ -42,7 +42,7 @@ def init_schema_from_script_files(client, scripts_path):
 
 
 @trace('Inserting quotes', enabled=lambda: config.ENABLE_TRACE)
-@avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=config.SILENT_STATS)
+@avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=lambda: config.SILENT_STATS)
 def insert_quotes(client, chunk_size=1):
    if chunk_size > config.NUM_QUOTES: chunk_size = config.NUM_QUOTES
    sources = list(config.BASE_DATA.keys())
@@ -98,7 +98,7 @@ def insert_quotes(client, chunk_size=1):
 
 
 @trace('Inserting trades', enabled=lambda: config.ENABLE_TRACE)
-@avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=config.SILENT_STATS)
+@avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=lambda: config.SILENT_STATS)
 def insert_trades(client, quotes, chunk_size=1):
    if chunk_size > config.NUM_TRADES: chunk_size = config.NUM_TRADES
 
@@ -236,7 +236,6 @@ def generate_mv(client):
 def run_test(client, context, verbose=False):
    # We may want to skip initial dataset generation
    if config.REGENERATE_DATASET:
-      config.ENABLE_TRACE = False
       generate_dataset(
          client,
          context.engine,
@@ -245,7 +244,6 @@ def run_test(client, context, verbose=False):
          context.primarykey,
          context.granularity)
       check_data(client, verbose=verbose)
-      config.ENABLE_TRACE = True
 
    generate_mv(client)
    if config.PRINT_SCRIPT_CODE:
@@ -286,6 +284,7 @@ def main():
 
       config.ENABLE_TRACE = False
       config.PRINT_SCRIPT_CODE = False
+      config.SILENT_STATS = True
 
       # Check all JOIN engines initially
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
