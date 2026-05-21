@@ -207,6 +207,7 @@ def select_from_mv(client, rows_to_print=-1):
    print_clickhouse_rowset(selected, rows_to_print)
 
 def generate_dataset(client, engine, partition, orderby, primarykey, granularity):
+   print('Generating dataset...', flush=True)
 
    reset_database(client)  # Drop tables to be able to re-create them with custom settings
 
@@ -226,6 +227,7 @@ def generate_dataset(client, engine, partition, orderby, primarykey, granularity
 
    client.command(sql.q_complete_partitioning_quotes)
    client.command(sql.q_complete_partitioning_trades)
+   print('Success', flush=True)
 
 
 def generate_mv(client):
@@ -244,8 +246,8 @@ def run_test(client, context, verbose=False):
          context.primarykey,
          context.granularity)
       check_data(client, verbose=verbose)
+      generate_mv(client)
 
-   generate_mv(client)
    if config.PRINT_SCRIPT_CODE:
       print_script_code('ASOF JOIN', [sql.q_asof_join])
    print_colored(f'Run ASOF JOIN with context:\n{context}', color=Color.BLUE)
