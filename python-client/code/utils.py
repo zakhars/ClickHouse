@@ -7,12 +7,10 @@ def print_green(text):
    COLOR_RESET = '\033[0m'
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
 
-
 def print_red(text):
    COLOR_TEST_CASE = '\033[91m'
    COLOR_RESET = '\033[0m'
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
-
 
 def print_yellow(text):
    COLOR_TEST_CASE = '\033[93m'
@@ -20,7 +18,7 @@ def print_yellow(text):
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
 
 def print_blue(text):
-   COLOR_TEST_CASE = '\033[96m'
+   COLOR_TEST_CASE = '\033[94m'
    COLOR_RESET = '\033[0m'
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
 

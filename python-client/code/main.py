@@ -264,7 +264,8 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print_blue(f'\nJoin settings: {join_settings}')
+         print('')
+         print_blue(f'Join settings: {join_settings}')
          print(f'Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
@@ -277,7 +278,8 @@ def main():
       print_script_code('ASOF JOIN', [sql.q_asof_join])
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
-         print_blue(f'\nJoin settings: {join_settings}')
+         print('')
+         print_blue(f'Join settings: {join_settings}')
          print(f'Executing:', flush=True)
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
