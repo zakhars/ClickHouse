@@ -60,8 +60,6 @@ def is_datetime_type(type_str):
 def print_clickhouse_rowset(result, num_rows=0):
    if num_rows < 0: return
 
-   print(f'\nNumber of rows returned: {result.row_count}', flush=True)
-
    columns = result.column_names
    rows = result.result_rows
    types = result.column_types

@@ -98,7 +98,7 @@ def insert_quotes(client, chunk_size=1):
 
    min_dt = datetime.fromtimestamp(min_ts   // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
    max_dt = datetime.fromtimestamp(local_ts // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
-   print(f'\nQuotes time range is {min_dt} to {max_dt}')
+   print(f'\nInserted quotes time range is {min_dt} to {max_dt}')
 
    return quotes
 
@@ -202,8 +202,6 @@ def create_mv(client, sc_script):
 @trace('Joining')
 @avg_time(n_calls=10, verbose=True)
 def join_asof(client, settings='', filter='', rows_to_print=-1):
-   print(f'Join settings: {settings}')
-   print(f'Filter: {filter}')
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
 
@@ -224,7 +222,7 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
       sql.sc_create_table_md_trades + table_creation_settings,
    ]
 
-   print('Table creation scripts:', flush=True)
+   print('\n\nTable creation scripts:', flush=True)
    for sc_script in patched_sc_scripts:
       print(sc_script, flush=True)
       print('\n')
@@ -259,12 +257,19 @@ def main():
       drop_mv(client, sql.sc_drop_mv)
       create_mv(client, sql.sc_create_mv)
 
-      check_data(client, verbose=True)
       get_physical_size(client)
+      check_data(client, verbose=True)
+
+      print('\n\nASOF JOIN code:', flush=True)
+      print(sql.q_asof_join, flush=True)
+      print('\n')
+
 
       print(f'========== Benchmarks start ==========', flush=True)
 
       for join_settings in config.JOIN_SETTINGS:
+         print(f'\nJoin settings: {join_settings}')
+         print(f'Filter: {filter}')
          join_asof(client=client, settings=join_settings, filter=config.FILTER['none'], rows_to_print=-1)
 
       select_from_mv(client, rows_to_print=-1)
