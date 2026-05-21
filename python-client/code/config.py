@@ -2,17 +2,9 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from typing import List
 
-DB = {
-   'host': 'clickhouse-marketdata',
-   'port': 8123,
-   'username': 'mduser',
-   'password': 'mdpassword',
-   'database': 'marketdata'
-}
-
 REGENERATE_DATASET = True
-NUM_QUOTES = 1_000_000
-NUM_TRADES = 10_000
+NUM_QUOTES = 10_000_000
+NUM_TRADES = 100_000
 INSERT_CHUNK_SIZE = 100_000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
 VERBOSE_STATS = False
 SILENT_STATS = False
@@ -119,3 +111,11 @@ class test_context:
               f'Table INDEX GRANULARITY: {self.granularity}\n'
               f'Join  FILTER: {self.filter}\n'
               f'Join  SETTINGS: {self.join_settings}\n')
+
+DB = {
+   'host': 'clickhouse-marketdata',
+   'port': 8123,
+   'username': 'mduser',
+   'password': 'mdpassword',
+   'database': 'marketdata'
+}
