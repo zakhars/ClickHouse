@@ -36,7 +36,7 @@ CHECK_QUERY_PLAN = 'EXPLAIN indexes = 1'
 JOIN_SETTINGS = {
    'none'              : {},
    'auto'              : {'join_algorithm': 'auto'},
-   'hash'              : {'join_algorithm': 'hash'},
+   'hash'              : {'join_algorithm': 'hash', 'asof_join_use_sorted_data': 1},
    'parallel_hash'     : {'join_algorithm': 'parallel_hash'},
    'full_sorting_merge': {'join_algorithm': 'full_sorting_merge'}
 }
