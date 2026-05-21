@@ -269,7 +269,7 @@ def main():
       select_from_mv(client, rows_to_print=-1)
 
       print_test_header(2, 'Compare ENGINE with partitioning by DAY')
-      partition = config.PARTITION_BY['toYYYYMMDD'],
+      partition = config.PARTITION_BY['toYYYYMMDD']
       generate_dataset(client, engine, partition, orderby, primarykey, settings)
       generate_mv(client)
       check_data(client, verbose=True)
