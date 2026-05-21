@@ -28,8 +28,8 @@ def print_white(text):
    print(f'{COLOR_TEST_CASE}{text}{COLOR_RESET}', flush=True)
 
 
-def print_test_header(number, header):
-   print_green(f'\n\nTest #{number}: {header}')
+def print_test_header(header):
+   print_green(f'\n\nTest: {header}')
 
 
 # Decorator to measure function execution time and show stats

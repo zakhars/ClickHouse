@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List
 
 import utils
-from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_red, print_blue
+from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_red, print_blue, print_script_code
 import sql
 import config
 from config import NS_IN_SEC
@@ -243,10 +243,18 @@ class test_context:
    primarykey: str
    granularity: str
    filter: List[str]
-   join_setings: List[str]
+   join_settings: List[str]
 
-def run_test(client, number, name, context):
-   print_test_header(number, name)
+   def __str__(self):
+      return (f'Table ENGINE: {self.engine}\n'
+              f'Table PARTITION BY: {self.partition}\n'
+              f'Table ORDER BY: {self.orderby}\n'
+              f'Table PRIMARY KEY: {self.primarykey}\n'
+              f'Table INDEX GRANULARITY: {self.granularity}\n'
+              f'Join  FILTER: {self.filter}\n'
+              f'Join  SETTINGS: {self.join_settings}\n')
+
+def run_test(client, context):
    # We may want to skip initial dataset generation
    if config.REGENERATE_DATA:
       generate_dataset(
@@ -256,15 +264,14 @@ def run_test(client, number, name, context):
          context.orderby,
          context.primarykey,
          context.granularity)
+      check_data(client, verbose=True)
+
    generate_mv(client)
-   check_data(client, verbose=True)
-   utils.print_script_code('ASOF JOIN', [sql.q_asof_join])
-   for filter in context.filter:
-      join_check_and_warmup(client, '', filter=filter)
-      for join_settings in context.join_setings:
-         print('')
-         print_blue(f'Run ASOF JOIN with settings: {join_settings}, filter={filter}')
-         join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
+   print_script_code('ASOF JOIN', [sql.q_asof_join])
+   join_check_and_warmup(client)
+   print('')
+   print_blue(f'Run ASOF JOIN with context: {context}')
+   join_asof(client, context.join_settings, context.filter, -1)
    print('')
    print_blue(f'Selecting from MV:')
    select_from_mv(client, rows_to_print=-1)
@@ -282,25 +289,27 @@ def main():
          orderby = config.ORDER_BY['symbol_time'],
          primarykey = config.PRIMARY_KEY['none'],
          granularity = config.INDEX_GRANULARITY['8192'],
-         filter = [config.FILTER['none']],
-         join_setings=[]
+         filter = config.FILTER['none'],
+         join_settings=config.JOIN_SETTINGS['none']
       )
 
       print(f'========== Benchmarks start ==========', flush=True)
 
 
       # Check all JOIN engines initially
-      context.join_setings = config.JOIN_SETTINGS.values()
-      run_test(client, 1, 'Compare JOIN ENGINES', context)
+      # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
+      # Only "hash" and "full_sorting_merge" left
+      print_test_header('Compare JOIN ENGINES')
+      for join_settings in config.JOIN_SETTINGS.values():
+         context.join_settings = join_settings
+         run_test(client, context)
 
-
-      # Leave only "hash" and "full_sorting_merge"
-      # We identified that default, auto and parallel_hash work equal to hash - exclude them
-      context.join_setings = [config.JOIN_SETTINGS['hash'], config.JOIN_SETTINGS['full_sorting_merge']]
-      # Compare different partitioning settings for given 2 JOIN engines
-      context.partition = config.PARTITION_BY.values()
-      run_test(client, 2, 'Compare ENGINEs with different partitioning', context)
-
+      # Compare different partitioning settings for "hash" engine
+      print_test_header('Compare different PARTITION BY')
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      for partition in config.PARTITION_BY.values():
+         context.partition = partition
+         run_test(client, context)
 
 
       print(f'========== Benchmarks stop ==========', flush=True)
