@@ -346,6 +346,41 @@ def main():
          context.granularity = granularity
          run_test(client, context, False, 'Table INDEX GRANULARITY')
 
+      # Compare INDEX GRANULARITY for hash and WHERE filter by local_ts
+      print_test_header('Compare INDEX GRANULARITY for hash algorithm and WHERE filter by local_ts')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      context.filter = config.FILTER['where_date_trade']
+      for granularity in config.INDEX_GRANULARITY.values():
+         context.granularity = granularity
+         run_test(client, context, False, 'Table INDEX GRANULARITY')
+
+      # Compare INDEX GRANULARITY for full_sorting_merge and WHERE filter by local_ts
+      print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and WHERE filter by local_ts')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      context.filter = config.FILTER['where_date_trade']
+      for granularity in config.INDEX_GRANULARITY.values():
+         context.granularity = granularity
+         run_test(client, context, False, 'Table INDEX GRANULARITY')
+
+      # Compare INDEX GRANULARITY for hash and PREWHERE filter by local_ts
+      print_test_header('Compare INDEX GRANULARITY for hash algorithm and PREWHERE filter by local_ts')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      context.filter = config.FILTER['prewhere_date_trade']
+      for granularity in config.INDEX_GRANULARITY.values():
+         context.granularity = granularity
+         run_test(client, context, False, 'Table INDEX GRANULARITY')
+
+      # Compare INDEX GRANULARITY for full_sorting_merge and PREWHERE filter by local_ts
+      print_test_header('Compare INDEX GRANULARITY for full_sorting_merge algorithm and PREWHERE filter by local_ts')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      context.filter = config.FILTER['prewhere_date_trade']
+      for granularity in config.INDEX_GRANULARITY.values():
+         context.granularity = granularity
+         run_test(client, context, False, 'Table INDEX GRANULARITY')
 
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
