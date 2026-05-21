@@ -175,9 +175,10 @@ def check_data(client, verbose=False):
       trades = client.query(sql.q_select_from_trades)
       print_clickhouse_rowset(trades, 10)
 
-   if (quotes_row_count != config.NUM_QUOTES or
-       trades_row_count != config.NUM_TRADES):
-      raise Exception('Wrong number of quotes or trades')
+   if quotes_row_count != config.NUM_QUOTES:
+      raise Exception(f'Wrong number of quotes. Expected {config.NUM_QUOTES}, got {quotes_row_count}')
+   if trades_row_count != config.NUM_TRADES:
+      raise Exception(f'Wrong number of trades. Expected {config.NUM_TRADES}, got {trades_row_count}')
 
 
 @trace('Checking DB size')

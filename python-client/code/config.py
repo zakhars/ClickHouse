@@ -8,10 +8,10 @@ DB = {
    'database': 'marketdata'
 }
 
-REGENERATE_DATA = False
-NUM_QUOTES = 50000000
-NUM_TRADES = 500000
-INSERT_CHUNK_SIZE = 100000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
+REGENERATE_DATA = True
+NUM_QUOTES = 10_000_000
+NUM_TRADES = 100_000
+INSERT_CHUNK_SIZE = 100_000 # tried from 1 to 1M - optimal size is around 100k - as fast as 1M, but looks safer
 
 BASE_DATA = {
    'CME':   [('F.EPZ26',      100),
@@ -28,7 +28,7 @@ BASE_DATA = {
              ('F.SDAS9H27',   10)]
 }
 
-NS_IN_SEC = 1000000000
+NS_IN_SEC = 1000_000_000
 BASE_TS_LOCAL  = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours=-3))).timestamp()) * NS_IN_SEC
 BASE_TS_EXCH   = int(datetime(2026, 4, 25, 8, 0, 0, 0, tzinfo=timezone(timedelta(hours= 5))).timestamp()) * NS_IN_SEC
 
@@ -72,7 +72,7 @@ ENGINE = {
 }
 
 PARTITION_BY = {
-   'none'        : '',
+   'none'      : '',
    'toYearWeek': 'PARTITION BY toYearWeek(local_ts)',
    'toYYYYMMDD': 'PARTITION BY toYYYYMMDD(local_ts)'
 }
@@ -88,8 +88,8 @@ ORDER_BY = {
 }
 
 INDEX_GRANULARITY = {
-   '1':    'SETTINGS index_granularity = 1',
-   '128':  'SETTINGS index_granularity = 128',
+   '1'   : 'SETTINGS index_granularity = 1',
+   '128' : 'SETTINGS index_granularity = 128',
    '1024': 'SETTINGS index_granularity = 1024',
    '4096': 'SETTINGS index_granularity = 4096',
    '8192': 'SETTINGS index_granularity = 8192'
