@@ -1,12 +1,9 @@
 import sys
-import time
 from pathlib import Path
 import random
 import clickhouse_connect
 import traceback
 from datetime import datetime
-from dataclasses import dataclass
-from typing import List
 
 import utils
 from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_script_code, print_colored, Color
@@ -14,7 +11,7 @@ import sql
 import config
 from config import NS_IN_SEC
 
-@trace('Connecting to server', enabled=config.ENABLE_TRACE)
+@trace('Connecting to server', enabled=lambda: config.ENABLE_TRACE)
 def connect():
    client = clickhouse_connect.get_client(**config.DB)
    if client.query('SELECT currentDatabase()').result_rows[0][0] != config.DB['database']:
@@ -22,12 +19,12 @@ def connect():
    return client
 
 
-@trace('Dropping all tables', enabled=config.ENABLE_TRACE)
+@trace('Dropping all tables', enabled=lambda: config.ENABLE_TRACE)
 def reset_database(client):
    client.query(f'TRUNCATE DATABASE {config.DB['database']}')
 
 
-@trace('Creating schema', enabled=config.ENABLE_TRACE)
+@trace('Creating schema', enabled=lambda: config.ENABLE_TRACE)
 def init_schema(client, sc_scripts):
    for script in sc_scripts:
       client.command(script)
@@ -35,7 +32,7 @@ def init_schema(client, sc_scripts):
 
 # Alternatively load scripts from given folder in case we can't modify SQL scripts
 # Function assumes scripts should be applied in alphabetical order
-@trace('Creating schema from files', enabled=config.ENABLE_TRACE)
+@trace('Creating schema from files', enabled=lambda: config.ENABLE_TRACE)
 def init_schema_from_script_files(client, scripts_path):
    path = Path(scripts_path)
    sc_scripts = sorted([str(f.resolve()) for f in path.glob('*_sc_*')])
@@ -44,7 +41,7 @@ def init_schema_from_script_files(client, scripts_path):
       client.command(script)
 
 
-@trace('Inserting quotes', enabled=config.ENABLE_TRACE)
+@trace('Inserting quotes', enabled=lambda: config.ENABLE_TRACE)
 @avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=config.SILENT_STATS)
 def insert_quotes(client, chunk_size=1):
    if chunk_size > config.NUM_QUOTES: chunk_size = config.NUM_QUOTES
@@ -98,7 +95,7 @@ def insert_quotes(client, chunk_size=1):
    return quotes
 
 
-@trace('Inserting trades', enabled=config.ENABLE_TRACE)
+@trace('Inserting trades', enabled=lambda: config.ENABLE_TRACE)
 @avg_time(n_calls=1, verbose=config.VERBOSE_STATS, silent=config.SILENT_STATS)
 def insert_trades(client, quotes, chunk_size=1):
    if chunk_size > config.NUM_TRADES: chunk_size = config.NUM_TRADES
@@ -132,7 +129,7 @@ def insert_trades(client, quotes, chunk_size=1):
       elif side == 2: # sell
          price = bid_price
       else:           # 'undef'
-         price = round((ask_price + bid_price) / 2, 5) # TODO: is this a correct idea?
+         price = round((ask_price + bid_price) / 2, 5) # TODO: is this a good idea?
 
       trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
 
@@ -155,7 +152,7 @@ def insert_trades(client, quotes, chunk_size=1):
       raise Exception(f'Wrong number of rows inserted into md_trades. Expected {config.NUM_QUOTES}, got {rows_inserted}')
 
 
-@trace('Checking data', enabled=config.ENABLE_TRACE)
+@trace('Checking data', enabled=lambda: config.ENABLE_TRACE)
 def check_data(client, verbose=True):
    quotes_row_count = client.query(sql.q_select_quotes_count).result_rows[0][0]
    trades_row_count = client.query(sql.q_select_trades_count).result_rows[0][0]
@@ -177,7 +174,7 @@ def check_data(client, verbose=True):
       raise Exception(f'Wrong number of trades. Expected {config.NUM_TRADES}, got {trades_row_count}')
 
 
-@trace('Checking DB size', enabled=config.ENABLE_TRACE)
+@trace('Checking DB size', enabled=lambda: config.ENABLE_TRACE)
 def print_physical_size(client):
    dbname = config.DB['database']
    sizes = client.query(
@@ -185,12 +182,12 @@ def print_physical_size(client):
    print_clickhouse_rowset(sizes, num_rows=100)
 
 
-@trace('Dropping MV', enabled=config.ENABLE_TRACE)
+@trace('Dropping MV', enabled=lambda: config.ENABLE_TRACE)
 def drop_mv(client, sc_script):
    client.command(sc_script)
 
 
-@trace('Creating MV', enabled=config.ENABLE_TRACE)
+@trace('Creating MV', enabled=lambda: config.ENABLE_TRACE)
 def create_mv(client, sc_script):
    client.command(sc_script)
 
@@ -205,12 +202,14 @@ def join_asof(client, settings='', filter='', rows_to_print=-1):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
 
+
 @avg_time(n_calls=10, verbose=config.VERBOSE_STATS, silent=False)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print_clickhouse_rowset(selected, rows_to_print)
 
 def generate_dataset(client, engine, partition, orderby, primarykey, granularity):
+
    reset_database(client)  # Drop tables to be able to re-create them with custom settings
 
    table_creation_settings = '\n'.join([engine, partition, orderby, primarykey, granularity])
@@ -227,7 +226,6 @@ def generate_dataset(client, engine, partition, orderby, primarykey, granularity
    quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
    insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
 
-   print("Completing partitioning after inserting data", flush=True)
    client.command(sql.q_complete_partitioning_quotes)
    client.command(sql.q_complete_partitioning_trades)
 
@@ -236,28 +234,10 @@ def generate_mv(client):
    drop_mv(client, sql.sc_drop_mv)
    create_mv(client, sql.sc_create_mv)
 
-@dataclass
-class test_context:
-   engine: str
-   partition: str
-   orderby: str
-   primarykey: str
-   granularity: str
-   filter: List[str]
-   join_settings: List[str]
-
-   def __str__(self):
-      return (f'Table ENGINE: {self.engine}\n'
-              f'Table PARTITION BY: {self.partition}\n'
-              f'Table ORDER BY: {self.orderby}\n'
-              f'Table PRIMARY KEY: {self.primarykey}\n'
-              f'Table INDEX GRANULARITY: {self.granularity}\n'
-              f'Join  FILTER: {self.filter}\n'
-              f'Join  SETTINGS: {self.join_settings}\n')
 
 def run_test(client, context, verbose=False):
    # We may want to skip initial dataset generation
-   if config.REGENERATE_DATA:
+   if config.REGENERATE_DATASET:
       generate_dataset(
          client,
          context.engine,
@@ -282,7 +262,7 @@ def main():
       client = connect()
 
       # Default settings
-      context = test_context(
+      context = config.test_context(
          engine = config.ENGINE['merge_tree'],
          partition = config.PARTITION_BY['none'],
          orderby = config.ORDER_BY['symbol_time'],
@@ -306,7 +286,6 @@ def main():
       print(f'========== Benchmarks start ==========', flush=True)
 
       config.ENABLE_TRACE = False
-      config.SILENT_STATS = True
 
       # Check all JOIN engines initially
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them

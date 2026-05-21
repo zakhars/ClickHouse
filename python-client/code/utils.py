@@ -13,7 +13,7 @@ class Color:
 
 
 def print_colored(text, color=Color.RESET):
-   print(f'{color}{text}{Color.RESET}', flush=True)
+   print(f'{color}{text.replace('\n',f'\n{color}')}{Color.RESET}', flush=True)
 
 
 # Decorator to measure function execution time and show stats
@@ -38,9 +38,9 @@ def avg_time(n_calls=1, verbose=False, return_stats=False, silent=False):
          if not silent:
             print_colored(f"Stats for function '{func.__name__}': Calls: {n_calls}, Avg: {avg_time:.6f} s ({avg_time * 1000:.3f} ms)", color=Color.YELLOW)
          if verbose:
-            print(f"   Min: {min_time:.6f} s")
-            print(f"   Max: {max_time:.6f} s")
-            print(f"   Stddev: {std_dev:.6f} s")
+            print_colored(f"   Min: {min_time:.6f} s", color=Color.YELLOW)
+            print_colored(f"   Max: {max_time:.6f} s", color=Color.YELLOW)
+            print_colored(f"   Stddev: {std_dev:.6f} s", color=Color.YELLOW)
 
          if return_stats:
             return result, {
@@ -56,15 +56,15 @@ def avg_time(n_calls=1, verbose=False, return_stats=False, silent=False):
 
 
 
-def trace(msg, enabled=True):
+def trace(msg, enabled):
    def decorator(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
-         if enabled:
+         if enabled():
             print(f"")
             print_colored(f"{msg}... ", color=Color.WHITE)
          result = func(*args, **kwargs)
-         if enabled:
+         if enabled():
             print_colored(f"Success", color=Color.GREEN)
          return result
       return wrapper
