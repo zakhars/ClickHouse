@@ -24,14 +24,6 @@ def reset_database(client):
    client.query(f'TRUNCATE DATABASE {config.DB['database']}')
 
 
-@trace('Truncating data')
-def truncate_data(client):
-   tables = client.query(f"SHOW TABLES FROM {config.DB['database']}").result_rows
-   for table in tables:
-      table_name = table[0]
-      client.command(f'TRUNCATE TABLE {table_name}')
-
-
 @trace('Creating schema')
 def init_schema(client, sc_scripts):
    for script in sc_scripts:
@@ -232,7 +224,6 @@ def generate_dataset(client, engine, partition, orderby, primarykey, settings):
    print_script_code('Table creation scripts', patched_sc_scripts)
 
    init_schema(client, patched_sc_scripts)
-   truncate_data(client)
    quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
    insert_trades(client, quotes, config.INSERT_CHUNK_SIZE)
 
@@ -249,7 +240,7 @@ def generate_mv(client):
 def print_test_header(number, header):
    COLOR_TEST_CASE = '\033[92m'
    COLOR_RESET = '\033[0m'
-   print(f'{COLOR_TEST_CASE}Test #{number}: {header}{COLOR_RESET}', flush=True)
+   print(f'\n\n{COLOR_TEST_CASE}Test #{number}: {header}{COLOR_RESET}', flush=True)
 
 
 def main():
@@ -265,19 +256,19 @@ def main():
       settings = config.INDEX_GRANULARITY['8192']
       filter = config.FILTER['none']
 
-      if config.REGENERATE_DATA: generate_dataset(client, engine, partition, orderby, primarykey, settings)
-      generate_mv(client)
-      check_data(client, verbose=True)
-
       print(f'========== Benchmarks start ==========', flush=True)
 
       print_test_header(1, 'Compare ENGINE without partitions')
+      # We may want to skip initial dataset generation
+      if config.REGENERATE_DATA: generate_dataset(client, engine, partition, orderby, primarykey, settings)
+      generate_mv(client)
+      check_data(client, verbose=True)
       for join_settings in config.JOIN_SETTINGS:
          print_script_code('ASOF JOIN', [sql.q_asof_join])
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
       select_from_mv(client, rows_to_print=-1)
 
-      print_test_header(1, 'Compare ENGINE with partitioning by DAY')
+      print_test_header(2, 'Compare ENGINE with partitioning by DAY')
       partition = config.PARTITION_BY['toYYYYMMDD'],
       generate_dataset(client, engine, partition, orderby, primarykey, settings)
       generate_mv(client)
