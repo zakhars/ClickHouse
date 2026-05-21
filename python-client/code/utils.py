@@ -94,9 +94,9 @@ def print_test_context(what, context, field_to_highlight):
    print(asdict(context).items())
    for param_name, param_value in asdict(context).items():
       if param_name == field_to_highlight:
-         print_colored(param_value, color=Color.RED)
+         print_colored(str(param_value), color=Color.RED)
       else:
-         print_colored(param_value, color=Color.CYAN)
+         print_colored(str(param_value), color=Color.CYAN)
 
 
 def is_datetime_type(type_str):
