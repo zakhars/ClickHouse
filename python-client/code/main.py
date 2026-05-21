@@ -90,7 +90,9 @@ def insert_quotes(client, chunk_size=1):
 
    min_dt = datetime.fromtimestamp(min_ts   // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
    max_dt = datetime.fromtimestamp(local_ts // NS_IN_SEC).strftime('%Y-%m-%d %H:%M:%S')
-   print(f'Inserted quotes time range is {min_dt} to {max_dt}')
+
+   if config.PRINT_SCRIPT_CODE:
+      print(f'Inserted quotes time range is {min_dt} to {max_dt}')
 
    return quotes
 
@@ -110,7 +112,7 @@ def insert_trades(client, quotes, chunk_size=1):
       quote_idx = available_quotes.pop()
       quote = quotes[quote_idx]
       symbol = quote[6]
-      source = quote[6]
+      source = quote[7]
       bid_price = quote[2]
       ask_price = quote[3]
       quote_ts_local = quote[4]
@@ -286,6 +288,7 @@ def main():
       print(f'========== Benchmarks start ==========', flush=True)
 
       config.ENABLE_TRACE = False
+      config.PRINT_SCRIPT_CODE = False
 
       # Check all JOIN engines initially
       # Later we identified that default, auto and parallel_hash work equal to hash, so excluded them
