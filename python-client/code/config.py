@@ -50,11 +50,11 @@ FILTER = {
    'where_date_trade'    : f"WHERE t.local_ts {DATES}",
    'where_date_quote'    : f"WHERE q.local_ts {DATES}",
    'where_date_symbol'   : f"WHERE t.local_ts {DATES} and t.symbol {SYMBOLS}",
-   'where_src'           : f"WHERE t.src {SOURCES}",
+   'where_src'           : f"WHERE t.source {SOURCES}",
    'prewhere_date_trade' : f"PREWHERE t.local_ts {DATES}",
    'prewhere_date_quote' : f"PREWHERE q.local_ts {DATES}",
    'prewhere_date_symbol': f"PREWHERE t.local_ts {DATES} and t.symbol {SYMBOLS}",
-   'prewhere_src'        : f"PREWHERE t.src {SOURCES}"
+   'prewhere_src'        : f"PREWHERE t.source {SOURCES}"
 }
 
 # Table definition order

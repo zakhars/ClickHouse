@@ -320,6 +320,13 @@ def main():
          context.filter = filter
          run_test(client, context, False, 'Join  FILTER')
 
+      # Compare filtering with fixed JOIN algorithm "hash"
+      print_test_header('Compare different FILTERING with fixed JOIN algorithm "full_sorting_merge"')
+      config.REGENERATE_DATASET = False
+      context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
+      for filter in config.FILTER.values():
+         context.filter = filter
+         run_test(client, context, False, 'Join  FILTER')
 
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
