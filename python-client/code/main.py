@@ -229,8 +229,6 @@ def generate_dataset(client, engine, partition, orderby, primarykey, granularity
    print("Completing partitioning after inserting data", flush=True)
    client.command(sql.q_complete_partitioning_quotes)
    client.command(sql.q_complete_partitioning_trades)
-   print('Waiting additional time after data partitioning', flush=True)
-   time.sleep(10)
 
 
 def generate_mv(client):
@@ -262,7 +260,7 @@ def run_test(client, number, name, context):
    check_data(client, verbose=True)
    utils.print_script_code('ASOF JOIN', [sql.q_asof_join])
    for filter in context.filter:
-      join_check_and_warmup(client, '', context.filter)
+      join_check_and_warmup(client, '', filter=filter)
       for join_settings in context.join_setings:
          print('')
          print_blue(f'Run ASOF JOIN with settings: {join_settings}, filter={filter}')
