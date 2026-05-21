@@ -1,9 +1,7 @@
 from functools import wraps
 import statistics
 import time
-from dataclasses import dataclass
 
-@dataclass(frozen=True)
 class color:
    GREEN  = '\033[92m'
    RED    = '\033[91m'
