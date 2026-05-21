@@ -8,6 +8,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import List
 
+import utils
 from utils import avg_time, trace, print_clickhouse_rowset, print_test_header, print_red, print_blue
 import sql
 import config
@@ -42,11 +43,6 @@ def init_schema_from_script_files(client, scripts_path):
       script = Path(script_name).read_text(encoding='utf-8')
       client.command(script)
 
-def print_script_code(prefix, code):
-   print(f'\n{prefix} code:', flush=True)
-   for script in code:
-      print(script, flush=True)
-      print('\n')
 
 @trace('Inserting quotes')
 @avg_time(n_calls=1, verbose=config.VERBOSE_STATS)
@@ -107,14 +103,14 @@ def insert_quotes(client, chunk_size=1):
 def insert_trades(client, quotes, chunk_size=1):
    if chunk_size > config.NUM_TRADES: chunk_size = config.NUM_TRADES
 
-   available_quotes = [i for i in range(len(quotes))]
+   available_quotes = list(range(len(quotes)))
+   random.shuffle(available_quotes)
    sides = [0, 1, 2]
    weights = [0.02, 0.44, 0.44] # undef is less frequent, than bid and ask
    seqno = 1
    trades = []
    for i in range(config.NUM_TRADES):
-      index = random.randrange(len(available_quotes))
-      quote_idx = available_quotes[index]
+      quote_idx = available_quotes.pop()
       quote = quotes[quote_idx]
       symbol = quote[6]
       source = quote[6]
@@ -131,17 +127,16 @@ def insert_trades(client, quotes, chunk_size=1):
 
       side = random.choices(sides, weights=weights, k=1)[0]
 
-      if side == 1: # buy
+      if side == 1:   # buy
          price = ask_price
       elif side == 2: # sell
          price = bid_price
-      else:
+      else:           # 'undef'
          price = round((ask_price + bid_price) / 2, 5) # TODO: is this a correct idea?
 
       trades.append((qty, side, price, local_ts, exch_ts, symbol, source, seqno))
 
       seqno += 1
-      del available_quotes[index] # do not reuse same quote twice for trade
 
 
    rows_inserted = 0
@@ -225,7 +220,7 @@ def generate_dataset(client, engine, partition, orderby, primarykey, granularity
       sql.sc_create_table_md_trades + table_creation_settings,
    ]
 
-   print_script_code('Table creation scripts', patched_sc_scripts)
+   utils.print_script_code('Table creation scripts', patched_sc_scripts)
 
    init_schema(client, patched_sc_scripts)
    quotes = insert_quotes(client, config.INSERT_CHUNK_SIZE)
@@ -265,7 +260,7 @@ def run_test(client, number, name, context):
          context.granularity)
    generate_mv(client)
    check_data(client, verbose=True)
-   print_script_code('ASOF JOIN', [sql.q_asof_join])
+   utils.print_script_code('ASOF JOIN', [sql.q_asof_join])
    join_check_and_warmup(client, '', context.filter)
    for filter in context.filter:
       for join_settings in context.join_setings:

@@ -86,6 +86,12 @@ def trace(msg, enabled=True):
    return decorator
 
 
+def print_script_code(prefix, code):
+   print(f'\n{prefix} code:', flush=True)
+   for script in code:
+      print(script, flush=True)
+      print('\n')
+
 def is_datetime_type(type_str):
     return 'DateTime64' in str(type_str)
 
