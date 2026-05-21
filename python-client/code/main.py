@@ -208,7 +208,6 @@ def join_asof(client, settings='', filter='', rows_to_print=-1):
    joined = client.query(sql.q_asof_join + '\n' + filter, settings=settings)
    print_clickhouse_rowset(joined, rows_to_print)
 
-@trace('Selecting from MV')
 @avg_time(n_calls=10, verbose=config.VERBOSE_STATS)
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
@@ -265,9 +264,9 @@ def main():
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
          print('')
-         print_blue(f'Join settings: {join_settings}')
-         print(f'Executing:', flush=True)
+         print_blue(f'Run ASOF JOIN with settings: {join_settings}')
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
+      print_blue(f'Selecting from MV:')
       select_from_mv(client, rows_to_print=-1)
 
       print_test_header(2, 'Compare ENGINE with partitioning by DAY')
@@ -279,9 +278,9 @@ def main():
       join_check_and_warmup(client, '', filter)
       for join_settings in config.JOIN_SETTINGS:
          print('')
-         print_blue(f'Join settings: {join_settings}')
-         print(f'Executing:', flush=True)
+         print_blue(f'Run ASOF JOIN with settings: {join_settings}')
          join_asof(client=client, settings=join_settings, filter=filter, rows_to_print=-1)
+      print_blue(f'Selecting from MV:')
       select_from_mv(client, rows_to_print=-1)
 
       print(f'========== Benchmarks stop ==========', flush=True)
