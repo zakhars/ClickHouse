@@ -1,13 +1,16 @@
 from functools import wraps
 import statistics
 import time
+from dataclasses import fields
 
 
 class Color:
    GREEN  = '\033[92m'
    RED    = '\033[91m'
    YELLOW = '\033[93m'
-   BLUE   = '\033[95m'
+   BLUE   = '\033[94m'
+   MAGENTA= '\033[95m'
+   CYAN   = '\033[96m'
    WHITE  = '\033[97m'
    RESET  = '\033[0m'
 
@@ -85,6 +88,14 @@ def print_script_code(prefix, code):
    for script in code:
       print(script, flush=True)
       print('\n')
+
+def print_test_context(what, context, field_to_highlight):
+   print_colored(f'Run {what} with context:\n', color=Color.CYAN)
+   for field in fields(context):
+      if field.name == field_to_highlight:
+         print_colored(field.name, color=Color.RED)
+      else:
+         print_colored(field.name, color=Color.CYAN)
 
 
 def is_datetime_type(type_str):

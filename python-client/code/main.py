@@ -235,7 +235,7 @@ def generate_mv(client):
    create_mv(client, sql.sc_create_mv)
 
 
-def run_test(client, context, verbose=False):
+def run_test(client, context, verbose=False, param_to_check=None):
    # We may want to skip initial dataset generation
    if config.REGENERATE_DATASET:
       generate_dataset(
@@ -250,7 +250,7 @@ def run_test(client, context, verbose=False):
 
    if config.PRINT_SCRIPT_CODE:
       print_script_code('ASOF JOIN', [sql.q_asof_join])
-   print_colored(f'Run ASOF JOIN with context:\n{context}', color=Color.BLUE)
+   utils.print_test_context("ASOF JOIN", context, param_to_check)
    num_rows = join_asof(client, context.join_settings, context.filter, -1)
    print(f'JOIN returned {num_rows} rows\n\n', flush=True)
 
@@ -295,7 +295,7 @@ def main():
       config.REGENERATE_DATASET = False
       for join_settings in config.JOIN_SETTINGS.values():
          context.join_settings = join_settings
-         run_test(client, context)
+         run_test(client, context, False, 'join_settings')
 
       # Compare different partitioning settings for "hash" engine
       print_test_header('Compare different PARTITION BY')
@@ -303,7 +303,7 @@ def main():
       context.join_settings = config.JOIN_SETTINGS['hash']
       for partition in config.PARTITION_BY.values():
          context.partition = partition
-         run_test(client, context)
+         run_test(client, context, False, 'partition')
 
       print_test_header('Selecting from MV')
       select_from_mv(client, rows_to_print=-1)
