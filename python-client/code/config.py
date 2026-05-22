@@ -82,8 +82,9 @@ PRIMARY_KEY = {
 }
 
 ORDER_BY = {
-   'none'       : '',
-   'symbol_time': 'ORDER BY (symbol, local_ts)',
+   'none'             : '',
+   'seqno'            : 'ORDER BY (seqno)',
+   'symbol_time'      : 'ORDER BY (symbol, local_ts)',
    'symbol_time_seqno': 'ORDER BY (symbol, local_ts, seqno)'
 }
 

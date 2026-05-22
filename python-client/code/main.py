@@ -387,7 +387,7 @@ def main():
       config.REGENERATE_DATASET = True
       context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
       context.filter = config.FILTER['prewhere_date_trade']
-      context.orderby = config.ORDER_BY['symbol_time_seqno']
+      context.orderby = config.ORDER_BY['seqno']
       for granularity in config.INDEX_GRANULARITY.values():
          context.granularity = granularity
          run_test(client, context, False, 'Table INDEX GRANULARITY')
