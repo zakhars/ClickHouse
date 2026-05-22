@@ -315,6 +315,15 @@ def main():
          context.filter = filter
          run_test(client, context, False, 'Join  FILTER')
 
+      print_test_header('Compare different PARTITION BY with fixed "hash" algorithm and fixed filtering')
+      config.REGENERATE_DATASET = True
+      context.join_settings = config.JOIN_SETTINGS['hash']
+      context.filter = config.FILTER['where_date_trade']
+      for partition in config.PARTITION_BY.values():
+         context.partition = partition
+         run_test(client, context, False, 'Table PARTITION BY')
+
+
       print_test_header('Compare different FILTERING with fixed JOIN algorithm "full_sorting_merge"')
       config.REGENERATE_DATASET = False
       context.join_settings = config.JOIN_SETTINGS['full_sorting_merge']
