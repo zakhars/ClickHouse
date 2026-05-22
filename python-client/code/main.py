@@ -205,6 +205,7 @@ def join_asof(client, settings='', filter='', rows_to_print=-1):
 def select_from_mv(client, rows_to_print=-1):
    selected = client.query(sql.q_select_from_mv)
    print_clickhouse_rowset(selected, rows_to_print)
+   return len(selected.result_rows)
 
 def generate_dataset(client, engine, partition, orderby, primarykey, granularity):
    print('Generating dataset...', flush=True)
@@ -372,7 +373,8 @@ def main():
 
 
       print_test_header('Selecting from MV')
-      select_from_mv(client, rows_to_print=-1)
+      rowconnt = select_from_mv(client, rows_to_print=-1)
+      print(f'SELECT FROM MV returned {rowconnt} rows\n\n', flush=True)
 
       print(f'========== Benchmarks stop ==========', flush=True)
 
